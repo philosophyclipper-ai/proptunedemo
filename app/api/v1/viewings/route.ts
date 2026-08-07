@@ -1,0 +1,116 @@
+import { NextResponse } from "next/server";
+import { requireApiContext } from "@/lib/api/context";
+import { withErrorHandling } from "@/lib/api/handler";
+import { withIdempotency } from "@/lib/api/idempotency";
+import { ApiError } from "@/lib/api/errors";
+import { toViewing } from "@/lib/api/serializers";
+import { getContactByPhone, getPropertyByRef, requireContactById } from "@/lib/api/lookups";
+
+export const GET = withErrorHandling(async (request) => {
+  const { supabase, agencyId } = await requireApiContext(request);
+  const { searchParams } = new URL(request.url);
+  const phone = searchParams.get("phone");
+  const propertyRef = searchParams.get("property_ref");
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+
+  let query = supabase.from("viewings").select("*").eq("agency_id", agencyId);
+
+  if (phone) {
+    const contact = await getContactByPhone(supabase, agencyId, phone);
+    if (!contact) return NextResponse.json({ viewings: [] });
+    query = query.eq("contact_id", contact.id);
+  }
+  if (propertyRef) {
+    const property = await getPropertyByRef(supabase, agencyId, propertyRef);
+    query = query.eq("property_id", property.id);
+  }
+  if (from) query = query.gte("scheduled_at", from);
+  if (to) query = query.lte("scheduled_at", to);
+
+  const { data, error } = await query.order("created_at", { ascending: false });
+  if (error) throw new ApiError("validation_failed", error.message);
+
+  return NextResponse.json({ viewings: (data ?? []).map(toViewing) });
+});
+
+export const POST = withErrorHandling(async (request) => {
+  const { supabase, agencyId } = await requireApiContext(request);
+  const idempotencyKey = request.headers.get("idempotency-key");
+  const body = await request.json();
+
+  if (!body.property_ref || !body.contact_id) {
+    throw new ApiError("validation_failed", "property_ref and contact_id are required");
+  }
+
+  const property = await getPropertyByRef(supabase, agencyId, body.property_ref);
+  await requireContactById(supabase, agencyId, body.contact_id);
+
+  const { status, body: responseBody } = await withIdempotency(
+    supabase,
+    agencyId,
+    "POST /viewings",
+    idempotencyKey,
+    async () => {
+      const vendorLed = property.viewing_conducted_by === "vendor";
+
+      if (vendorLed) {
+        if (!body.proposed_times || body.proposed_times.length === 0) {
+          throw new ApiError(
+            "validation_failed",
+            "proposed_times is required when the vendor holds the calendar"
+          );
+        }
+
+        const { data: viewing, error } = await supabase
+          .from("viewings")
+          .insert({
+            agency_id: agencyId,
+            property_id: property.id,
+            contact_id: body.contact_id,
+            status: "requested",
+            proposed_times: body.proposed_times,
+          })
+          .select("*")
+          .single();
+
+        if (error) throw new ApiError("validation_failed", error.message);
+
+        await supabase.from("tasks").insert({
+          agency_id: agencyId,
+          entity_type: "viewing",
+          entity_id: viewing.id,
+          title: `Confirm viewing time with vendor for ${property.ref}`,
+          body: `Proposed times: ${body.proposed_times.join(", ")}`,
+        });
+
+        return { status: 201, body: toViewing(viewing) };
+      }
+
+      if (!body.scheduled_at) {
+        throw new ApiError(
+          "validation_failed",
+          "scheduled_at is required when the agency holds the calendar"
+        );
+      }
+
+      const { data: viewing, error } = await supabase
+        .from("viewings")
+        .insert({
+          agency_id: agencyId,
+          property_id: property.id,
+          contact_id: body.contact_id,
+          status: "confirmed",
+          scheduled_at: body.scheduled_at,
+          calendar_event_id: `demo-${crypto.randomUUID()}`,
+        })
+        .select("*")
+        .single();
+
+      if (error) throw new ApiError("validation_failed", error.message);
+      return { status: 201, body: toViewing(viewing) };
+    }
+  );
+
+  return NextResponse.json(responseBody, { status });
+});
