@@ -14,6 +14,7 @@ export const GET = withErrorHandling(async (request) => {
   const beds = searchParams.get("beds");
   const type = searchParams.get("type");
   const status = searchParams.get("status");
+  const listingType = searchParams.get("listing_type");
   const cursor = searchParams.get("cursor");
 
   let query = supabase
@@ -27,6 +28,7 @@ export const GET = withErrorHandling(async (request) => {
   if (beds) query = query.eq("bedrooms", Number(beds));
   if (type) query = query.eq("property_type", type);
   if (status) query = query.eq("status", status);
+  if (listingType) query = query.eq("listing_type", listingType);
 
   const decoded = cursor ? decodeCursor(cursor) : null;
   if (decoded) {

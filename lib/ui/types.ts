@@ -19,10 +19,13 @@ export type Property = {
   property_type: string | null;
   tenure: string | null;
   status: string;
+  listing_type: "sales" | "lettings";
   price_qualifier: string | null;
   asking_price: number | null;
   home_report_value: number | null;
   home_report_url: string | null;
+  rent_amount: number | null;
+  rent_frequency: "monthly" | "weekly" | null;
   council_tax_band: string | null;
   epc_rating: string | null;
   vendor_contact_id: string | null;

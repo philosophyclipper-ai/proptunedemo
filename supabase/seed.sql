@@ -88,8 +88,12 @@ insert into properties (
     null
   );
 
--- picsum.photos returns a real, stable image per seed with no API key —
--- there's no actual Supabase Storage bucket wired up for this demo.
+-- picsum.photos returns a real, stable image per seed with no API key, so a
+-- fresh install has something that resolves immediately. For real branded
+-- "Photo Pending" placeholders and Home Report PDFs hosted in this project's
+-- own Supabase Storage bucket, run scripts/generate-property-media.mjs
+-- after seeding — Storage URLs are project-specific, so they can't be
+-- hardcoded here the way picsum's can.
 insert into property_photos (agency_id, property_id, url, sort_order) values
   ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'https://picsum.photos/seed/eh12345-1/800/600', 0),
   ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'https://picsum.photos/seed/eh12345-2/800/600', 1),

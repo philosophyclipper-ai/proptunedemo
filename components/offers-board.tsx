@@ -4,19 +4,38 @@ import { resolveContacts } from "@/lib/ui/resolve-contacts";
 import { formatDateTime, formatMoney, titleCase } from "@/lib/ui/format";
 import { offerStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
+import type { Offer } from "@/lib/ui/types";
 
-export default async function OffersBoardPage() {
-  const [{ offers }, properties] = await Promise.all([getOffers(), getAllProperties()]);
+// Shared by Sales' Offers board and Lettings' Applications board — same
+// underlying offers/notes-of-interest table, just relabeled per section.
+export async function OffersBoard({
+  listingType,
+  heading,
+  noteLabel,
+  firmLabel,
+  emptyLabel,
+}: {
+  listingType: "sales" | "lettings";
+  heading: string;
+  noteLabel: string;
+  firmLabel: string;
+  emptyLabel: string;
+}) {
+  const [{ offers: allOffers }, properties] = await Promise.all([getOffers(), getAllProperties()]);
 
   const propertyByRef = new Map(properties.map((p) => [p.ref, p]));
+  const offers = allOffers.filter(
+    (o) => o.property_ref && propertyByRef.get(o.property_ref)?.listing_type === listingType
+  );
+
   const contacts = await resolveContacts([
     ...offers.map((o) => o.contact_id),
     ...offers.map((o) => o.solicitor_contact_id),
   ]);
 
-  const groups = new Map<string, typeof offers>();
+  const groups = new Map<string, Offer[]>();
   for (const offer of offers) {
-    const key = offer.property_ref ?? "unknown";
+    const key = offer.property_ref as string;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(offer);
   }
@@ -30,24 +49,21 @@ export default async function OffersBoardPage() {
   return (
     <div className="p-8">
       <header className="mb-6">
-        <h1 className="font-heading text-2xl font-semibold text-navy-950">Offers Board</h1>
+        <h1 className="font-heading text-2xl font-semibold text-navy-950">{heading}</h1>
         <p className="text-sm text-ink-muted">
-          {offers.length} offers and notes of interest across {groups.size} properties
+          {offers.length} across {groups.size} properties
         </p>
       </header>
 
       {sortedRefs.length === 0 ? (
-        <p className="text-sm text-ink-muted">No offers or notes of interest yet.</p>
+        <p className="text-sm text-ink-muted">{emptyLabel}</p>
       ) : (
         <div className="flex flex-col gap-6">
           {sortedRefs.map((ref) => {
             const property = propertyByRef.get(ref);
             const groupOffers = groups.get(ref)!;
             return (
-              <section
-                key={ref}
-                className="rounded-lg border border-border-hairline bg-paper p-5"
-              >
+              <section key={ref} className="rounded-lg border border-border-hairline bg-paper p-5">
                 <div className="mb-3 flex items-baseline justify-between gap-2">
                   <Link
                     href={`/properties/${ref}`}
@@ -78,12 +94,10 @@ export default async function OffersBoardPage() {
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         {offer.amount != null && (
-                          <span className="font-medium text-amber-600">
-                            {formatMoney(offer.amount)}
-                          </span>
+                          <span className="font-medium text-amber-600">{formatMoney(offer.amount)}</span>
                         )}
                         <span className="text-xs uppercase tracking-wide text-ink-faint">
-                          {offer.type === "offer" ? "Offer" : "Note of Interest"}
+                          {offer.type === "offer" ? firmLabel : noteLabel}
                         </span>
                         <Pill tone={offerStatusTone(offer.status)} label={titleCase(offer.status)} />
                       </div>

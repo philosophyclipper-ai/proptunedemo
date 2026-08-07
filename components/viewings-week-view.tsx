@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllProperties, getValuations, getViewings } from "@/lib/ui/api-client";
+import { getAllProperties, getViewings } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
 import { addDays, isSameDay, startOfWeek, toDateParam } from "@/lib/ui/dates";
 import { formatDate, formatTime, titleCase } from "@/lib/ui/format";
@@ -8,39 +8,38 @@ import { viewingStatusTone } from "@/lib/ui/status-tone";
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export default async function DiaryPage({
-  searchParams,
+// Shared by Sales' and Lettings' Viewings pages — same week-grid mechanics,
+// filtered to whichever section's properties.
+export async function ViewingsWeekView({
+  listingType,
+  basePath,
+  week,
 }: {
-  searchParams: Promise<{ week?: string }>;
+  listingType: "sales" | "lettings";
+  basePath: string;
+  week?: string;
 }) {
-  const params = await searchParams;
-  const anchor = params.week ? new Date(params.week) : new Date();
+  const anchor = week ? new Date(week) : new Date();
   const monday = startOfWeek(anchor);
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
   const weekEnd = addDays(days[6], 1); // exclusive
 
-  const [viewingsResult, valuationsResult, properties] = await Promise.all([
+  const [{ viewings: allViewings }, properties] = await Promise.all([
     getViewings(),
-    getValuations(),
     getAllProperties(),
   ]);
 
   const propertyByRef = new Map(properties.map((p) => [p.ref, p]));
-  const contacts = await resolveContacts([
-    ...viewingsResult.viewings.map((v) => v.contact_id),
-    ...valuationsResult.valuations.map((v) => v.contact_id),
-  ]);
+  const viewings = allViewings.filter(
+    (v) => v.property_ref && propertyByRef.get(v.property_ref)?.listing_type === listingType
+  );
 
-  const weekViewings = viewingsResult.viewings.filter(
+  const contacts = await resolveContacts(viewings.map((v) => v.contact_id));
+
+  const weekViewings = viewings.filter(
     (v) => v.scheduled_at && new Date(v.scheduled_at) >= monday && new Date(v.scheduled_at) < weekEnd
   );
-  const weekValuations = valuationsResult.valuations.filter(
-    (v) =>
-      v.valuation_date &&
-      new Date(v.valuation_date) >= monday &&
-      new Date(v.valuation_date) < weekEnd
-  );
-  const awaitingViewings = viewingsResult.viewings.filter((v) => v.status === "requested");
+  const awaitingViewings = viewings.filter((v) => v.status === "requested");
 
   const prevWeek = toDateParam(addDays(monday, -7));
   const nextWeek = toDateParam(addDays(monday, 7));
@@ -49,10 +48,10 @@ export default async function DiaryPage({
   return (
     <div className="p-8">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-heading text-2xl font-semibold text-navy-950">Diary</h1>
+        <h1 className="font-heading text-2xl font-semibold text-navy-950">Viewings</h1>
         <div className="flex items-center gap-2 text-sm">
           <Link
-            href={{ pathname: "/diary", query: { week: prevWeek } }}
+            href={{ pathname: basePath, query: { week: prevWeek } }}
             className="rounded border border-border-hairline bg-paper px-3 py-1.5 hover:bg-cream-dim"
           >
             ← Previous
@@ -61,7 +60,7 @@ export default async function DiaryPage({
             {formatDate(days[0].toISOString())} – {formatDate(days[6].toISOString())}
           </span>
           <Link
-            href={{ pathname: "/diary", query: { week: nextWeek } }}
+            href={{ pathname: basePath, query: { week: nextWeek } }}
             className="rounded border border-border-hairline bg-paper px-3 py-1.5 hover:bg-cream-dim"
           >
             Next →
@@ -72,9 +71,6 @@ export default async function DiaryPage({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
         {days.map((day, i) => {
           const dayViewings = weekViewings.filter((v) => isSameDay(new Date(v.scheduled_at!), day));
-          const dayValuations = weekValuations.filter((v) =>
-            isSameDay(new Date(v.valuation_date!), day)
-          );
           const isToday = isSameDay(day, today);
 
           return (
@@ -88,9 +84,7 @@ export default async function DiaryPage({
                 {DAY_LABELS[i]} <span className="text-ink-faint">{day.getDate()}</span>
               </p>
 
-              {dayViewings.length === 0 && dayValuations.length === 0 && (
-                <p className="text-xs text-ink-faint">—</p>
-              )}
+              {dayViewings.length === 0 && <p className="text-xs text-ink-faint">—</p>}
 
               <ul className="flex flex-col gap-2">
                 {dayViewings.map((v) => (
@@ -107,19 +101,6 @@ export default async function DiaryPage({
                       )}
                       <br />
                       {contacts.get(v.contact_id)?.name ?? "Unknown contact"}
-                    </p>
-                  </li>
-                ))}
-                {dayValuations.map((v) => (
-                  <li key={v.id} className="rounded border border-border-hairline bg-cream p-2 text-xs">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="font-medium text-ink">Valuation</span>
-                      <Pill tone={v.status === "completed" ? "green" : "amber"} label={titleCase(v.status)} />
-                    </div>
-                    <p className="mt-1 text-ink-muted">
-                      {contacts.get(v.contact_id)?.name ?? "Unknown contact"}
-                      <br />
-                      {v.postcode}
                     </p>
                   </li>
                 ))}

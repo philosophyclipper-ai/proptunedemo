@@ -10,7 +10,14 @@ import {
 } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
 import { resolveViewingFeedback } from "@/lib/ui/resolve-viewing-feedback";
-import { formatAddress, formatDate, formatMoney, formatPrice, titleCase } from "@/lib/ui/format";
+import {
+  formatAddress,
+  formatDate,
+  formatMoney,
+  formatPrice,
+  formatRent,
+  titleCase,
+} from "@/lib/ui/format";
 import { propertyStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
 import { PropertyTabs } from "@/components/property-tabs";
@@ -46,11 +53,15 @@ export default async function PropertyDetailPage({
   ]);
   const contacts = Object.fromEntries(contactsMap);
   const feedback = Object.fromEntries(feedbackMap);
+  const isLettings = property.listing_type === "lettings";
 
   return (
     <div className="p-8">
-      <Link href="/" className="text-sm text-ink-muted hover:text-navy-900">
-        ← Back to Listings
+      <Link
+        href={isLettings ? "/lettings" : "/sales"}
+        className="text-sm text-ink-muted hover:text-navy-900"
+      >
+        ← Back to {isLettings ? "Lettings" : "Sales"} Listings
       </Link>
 
       <header className="mt-3 mb-6 flex items-start justify-between gap-4">
@@ -82,21 +93,29 @@ export default async function PropertyDetailPage({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
           <section className="rounded-lg border border-border-hairline bg-paper p-5">
-            <p className="font-heading text-2xl font-semibold text-amber-600">
-              {formatPrice(property)}
-            </p>
-            <p className="mt-1 text-sm text-ink-muted">
-              Home Report Value: {formatMoney(property.home_report_value)}
-            </p>
-            {property.home_report_url && (
-              <a
-                href={property.home_report_url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-block text-sm text-navy-700 underline underline-offset-2"
-              >
-                View Home Report
-              </a>
+            {isLettings ? (
+              <p className="font-heading text-2xl font-semibold text-amber-600">
+                {formatRent(property)}
+              </p>
+            ) : (
+              <>
+                <p className="font-heading text-2xl font-semibold text-amber-600">
+                  {formatPrice(property)}
+                </p>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Home Report Value: {formatMoney(property.home_report_value)}
+                </p>
+                {property.home_report_url && (
+                  <a
+                    href={property.home_report_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-block text-sm text-navy-700 underline underline-offset-2"
+                  >
+                    View Home Report
+                  </a>
+                )}
+              </>
             )}
           </section>
 
@@ -105,18 +124,27 @@ export default async function PropertyDetailPage({
             <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
               <Attribute
                 label="Bedrooms"
-                value={property.bedrooms != null ? String(property.bedrooms) : "—"}
+                value={
+                  property.bedrooms === 0
+                    ? "Studio"
+                    : property.bedrooms != null
+                      ? String(property.bedrooms)
+                      : "—"
+                }
               />
               <Attribute label="Type" value={titleCase(property.property_type)} />
-              <Attribute label="Tenure" value={titleCase(property.tenure)} />
+              {!isLettings && <Attribute label="Tenure" value={titleCase(property.tenure)} />}
               <Attribute label="Council Tax Band" value={property.council_tax_band ?? "—"} />
               <Attribute label="EPC Rating" value={property.epc_rating ?? "—"} />
-              <Attribute label="Closing Date" value={formatDate(property.closing_date)} />
+              {!isLettings && (
+                <Attribute label="Closing Date" value={formatDate(property.closing_date)} />
+              )}
             </dl>
           </section>
 
           <section className="rounded-lg border border-border-hairline bg-paper p-5">
             <PropertyTabs
+              listingType={property.listing_type}
               viewings={viewingsResult.viewings}
               offers={offersResult.offers}
               notes={notesResult.notes}

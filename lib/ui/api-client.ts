@@ -42,6 +42,7 @@ async function apiGet<T>(
 }
 
 export async function getProperties(params: {
+  listing_type?: "sales" | "lettings";
   status?: string;
   postcode?: string;
   cursor?: string;

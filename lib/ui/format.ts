@@ -32,6 +32,15 @@ export function formatMoney(amount: number | null): string {
   return gbp.format(amount);
 }
 
+export function formatRent(property: {
+  rent_amount: number | null;
+  rent_frequency: "monthly" | "weekly" | null;
+}): string {
+  if (property.rent_amount == null) return "POA";
+  const amount = gbp.format(property.rent_amount);
+  return property.rent_frequency === "weekly" ? `${amount} pw` : `${amount} pcm`;
+}
+
 export function formatDate(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-GB", {

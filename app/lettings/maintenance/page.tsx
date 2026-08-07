@@ -11,13 +11,18 @@ const COLUMNS = [
   { status: "resolved", label: "Resolved" },
 ] as const;
 
-export default async function MaintenanceBoardPage() {
-  const [{ maintenance_issues: issues }, properties] = await Promise.all([
+export default async function LettingsMaintenancePage() {
+  const [{ maintenance_issues: allIssues }, properties] = await Promise.all([
     getMaintenanceIssues(),
     getAllProperties(),
   ]);
 
   const propertyByRef = new Map(properties.map((p) => [p.ref, p]));
+  // Maintenance only makes sense for tenanted/let properties — a for-sale
+  // vendor's property doesn't go through the agency's maintenance tracking.
+  const issues = allIssues.filter(
+    (i) => i.property_ref && propertyByRef.get(i.property_ref)?.listing_type === "lettings"
+  );
   const contacts = await resolveContacts(issues.map((i) => i.contact_id));
 
   return (

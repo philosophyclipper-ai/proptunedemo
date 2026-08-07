@@ -3,10 +3,12 @@ export type Tone = "green" | "amber" | "red" | "gray" | "navy";
 export function propertyStatusTone(status: string): Tone {
   switch (status) {
     case "available":
+    case "on_market":
       return "green";
     case "under_offer":
       return "amber";
     case "sold":
+    case "let":
       return "navy";
     default:
       return "gray"; // withdrawn

@@ -8,6 +8,7 @@ import { offerStatusTone, viewingStatusTone } from "@/lib/ui/status-tone";
 import { formatDateTime, formatMoney, titleCase } from "@/lib/ui/format";
 
 type Props = {
+  listingType: "sales" | "lettings";
   viewings: Viewing[];
   offers: Offer[];
   notes: Note[];
@@ -15,21 +16,25 @@ type Props = {
   feedback: Record<string, Note[]>;
 };
 
-const TABS = ["Viewings", "Offers & Notes of Interest", "Notes"] as const;
-type Tab = (typeof TABS)[number];
+export function PropertyTabs({ listingType, viewings, offers, notes, contacts, feedback }: Props) {
+  const offersTabLabel = listingType === "lettings" ? "Applications" : "Offers & Notes of Interest";
+  const noteLabel = listingType === "lettings" ? "Enquiry" : "Note of Interest";
+  const firmLabel = listingType === "lettings" ? "Application" : "Offer";
 
-export function PropertyTabs({ viewings, offers, notes, contacts, feedback }: Props) {
+  const tabs = ["Viewings", offersTabLabel, "Notes"] as const;
+  type Tab = (typeof tabs)[number];
   const [active, setActive] = useState<Tab>("Viewings");
-  const counts: Record<Tab, number> = {
+
+  const counts: Record<string, number> = {
     Viewings: viewings.length,
-    "Offers & Notes of Interest": offers.length,
+    [offersTabLabel]: offers.length,
     Notes: notes.length,
   };
 
   return (
     <div>
       <div className="flex gap-1 border-b border-border-hairline">
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab}
             type="button"
@@ -50,8 +55,8 @@ export function PropertyTabs({ viewings, offers, notes, contacts, feedback }: Pr
         {active === "Viewings" && (
           <ViewingsTab viewings={viewings} contacts={contacts} feedback={feedback} />
         )}
-        {active === "Offers & Notes of Interest" && (
-          <OffersTab offers={offers} contacts={contacts} />
+        {active === offersTabLabel && (
+          <OffersTab offers={offers} contacts={contacts} noteLabel={noteLabel} firmLabel={firmLabel} />
         )}
         {active === "Notes" && <NotesTab notes={notes} />}
       </div>
@@ -114,8 +119,18 @@ function ViewingsTab({
   );
 }
 
-function OffersTab({ offers, contacts }: { offers: Offer[]; contacts: Record<string, Contact> }) {
-  if (offers.length === 0) return <EmptyState label="No offers or notes of interest yet." />;
+function OffersTab({
+  offers,
+  contacts,
+  noteLabel,
+  firmLabel,
+}: {
+  offers: Offer[];
+  contacts: Record<string, Contact>;
+  noteLabel: string;
+  firmLabel: string;
+}) {
+  if (offers.length === 0) return <EmptyState label="Nothing on record yet." />;
   return (
     <ul className="flex flex-col gap-2">
       {offers.map((o) => (
@@ -126,7 +141,7 @@ function OffersTab({ offers, contacts }: { offers: Offer[]; contacts: Record<str
             </Link>
             <div className="flex items-center gap-2">
               <span className="text-xs uppercase tracking-wide text-ink-faint">
-                {o.type === "offer" ? "Offer" : "Note of Interest"}
+                {o.type === "offer" ? firmLabel : noteLabel}
               </span>
               <Pill tone={offerStatusTone(o.status)} label={titleCase(o.status)} />
             </div>
