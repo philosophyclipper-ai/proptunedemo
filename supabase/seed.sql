@@ -88,10 +88,12 @@ insert into properties (
     null
   );
 
+-- picsum.photos returns a real, stable image per seed with no API key —
+-- there's no actual Supabase Storage bucket wired up for this demo.
 insert into property_photos (agency_id, property_id, url, sort_order) values
-  ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'https://storage.example.com/photos/eh12345-1.jpg', 0),
-  ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'https://storage.example.com/photos/eh12345-2.jpg', 1),
-  ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', 'https://storage.example.com/photos/eh23456-1.jpg', 0);
+  ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'https://picsum.photos/seed/eh12345-1/800/600', 0),
+  ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'https://picsum.photos/seed/eh12345-2/800/600', 1),
+  ('00000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', 'https://picsum.photos/seed/eh23456-1/800/600', 0);
 
 -- Valuation with no property yet — pre-instruction, so it carries its own address.
 insert into valuations (id, agency_id, property_id, contact_id, address_line1, city, postcode, estimated_value, status, valuation_date, notes) values
