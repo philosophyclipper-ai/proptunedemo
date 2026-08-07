@@ -19,11 +19,21 @@ PATCH  /contacts/:id
 ## Properties
 
 ```
-GET    /properties?postcode=&min_price=&max_price=&beds=&type=&status=&cursor=
+GET    /properties?postcode=&min_price=&max_price=&beds=&type=&status=&listing_type=&cursor=
 GET    /properties/:ref
 GET    /properties/:ref/viewing-arrangement
-PATCH  /properties/:ref            status, closing_date — UI only
+GET    /properties/:ref/notes      UI only
+POST   /properties                 UI only — onboards a new listing
+PATCH  /properties/:ref            UI only — full listing edit
 ```
+
+`listing_type` is `sales` | `lettings` — a property is one or the other, never both.
+Lettings properties carry `rent_amount`/`rent_frequency` (`monthly` | `weekly`) instead
+of `asking_price`/`price_qualifier`/`home_report_*`, and use `on_market` | `let` instead
+of the sales status vocabulary.
+
+`POST /properties` assigns `ref` automatically (outward postcode + a random 5-digit
+number) — never pass a uuid, and there's no way to choose your own ref.
 
 `GET /properties/:ref/viewing-arrangement` returns:
 

@@ -21,6 +21,8 @@ import {
 import { propertyStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
 import { PropertyTabs } from "@/components/property-tabs";
+import { EditListingButton } from "@/components/edit-listing-button";
+import { PropertyQuickActions } from "@/components/property-quick-actions";
 
 export default async function PropertyDetailPage({
   params,
@@ -73,7 +75,15 @@ export default async function PropertyDetailPage({
             {formatAddress(property)} · {property.ref}
           </p>
         </div>
-        <Pill tone={propertyStatusTone(property.status)} label={titleCase(property.status)} />
+        <div className="flex shrink-0 items-center gap-3">
+          <Pill tone={propertyStatusTone(property.status)} label={titleCase(property.status)} />
+          <EditListingButton
+            property={property}
+            vendorName={vendorContact?.name}
+            vendorPhone={vendorContact?.phone_primary}
+            viewingNotes={viewingArrangement.viewing_notes}
+          />
+        </div>
       </header>
 
       {property.photos.length > 0 && (
@@ -143,6 +153,13 @@ export default async function PropertyDetailPage({
           </section>
 
           <section className="rounded-lg border border-border-hairline bg-paper p-5">
+            <div className="mb-4">
+              <PropertyQuickActions
+                propertyRef={property.ref}
+                listingType={property.listing_type}
+                vendorLed={viewingArrangement.conducted_by === "vendor"}
+              />
+            </div>
             <PropertyTabs
               listingType={property.listing_type}
               viewings={viewingsResult.viewings}

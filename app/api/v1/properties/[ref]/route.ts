@@ -21,7 +21,32 @@ export const GET = withErrorHandling(async (request, { params }) => {
   return NextResponse.json(toProperty(data));
 });
 
-// UI only — status and closing_date are never set by an agent.
+const EDITABLE_FIELDS = [
+  "address_line1",
+  "address_line2",
+  "city",
+  "postcode",
+  "bedrooms",
+  "property_type",
+  "tenure",
+  "status",
+  "price_qualifier",
+  "asking_price",
+  "home_report_value",
+  "home_report_url",
+  "rent_amount",
+  "rent_frequency",
+  "council_tax_band",
+  "epc_rating",
+  "vendor_contact_id",
+  "viewing_conducted_by",
+  "viewing_calendar_id",
+  "viewing_notes",
+  "closing_date",
+] as const;
+
+// UI only — not a voice tool. closing_date in particular is set by humans
+// only, but everything here is negotiator/admin editing, never an agent.
 export const PATCH = withErrorHandling(async (request, { params }) => {
   const { ref } = await params;
   const { supabase, agencyId } = await requireApiContext(request);
@@ -29,11 +54,12 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
   const body = await request.json();
 
   const updates: Record<string, unknown> = {};
-  if (body.status !== undefined) updates.status = body.status;
-  if (body.closing_date !== undefined) updates.closing_date = body.closing_date;
+  for (const field of EDITABLE_FIELDS) {
+    if (body[field] !== undefined) updates[field] = body[field];
+  }
 
   if (Object.keys(updates).length === 0) {
-    throw new ApiError("validation_failed", "status or closing_date is required");
+    throw new ApiError("validation_failed", "No editable fields were provided");
   }
 
   const { data, error } = await supabase
@@ -41,7 +67,7 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     .update(updates)
     .eq("agency_id", agencyId)
     .eq("ref", ref)
-    .select("*")
+    .select("*, property_photos(url, sort_order)")
     .single();
 
   if (error) throw new ApiError("validation_failed", error.message);

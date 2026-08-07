@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireApiContext } from "@/lib/api/context";
 import { withErrorHandling } from "@/lib/api/handler";
+import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
 import { toProperty } from "@/lib/api/serializers";
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
+import { generatePropertyRef } from "@/lib/api/generate-ref";
 
 export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
@@ -57,4 +59,82 @@ export const GET = withErrorHandling(async (request) => {
     properties: results.map(toProperty),
     next_cursor: nextCursor,
   });
+});
+
+// UI only — a new listing is onboarded by a negotiator, never an agent.
+export const POST = withErrorHandling(async (request) => {
+  const { supabase, agencyId } = await requireApiContext(request);
+  const idempotencyKey = request.headers.get("idempotency-key");
+  const body = await request.json();
+
+  if (!body.address_line1 || !body.postcode || !body.listing_type) {
+    throw new ApiError(
+      "validation_failed",
+      "address_line1, postcode and listing_type are required"
+    );
+  }
+  if (!["sales", "lettings"].includes(body.listing_type)) {
+    throw new ApiError("validation_failed", "listing_type must be sales or lettings");
+  }
+
+  const { status, body: responseBody } = await withIdempotency(
+    supabase,
+    agencyId,
+    "POST /properties",
+    idempotencyKey,
+    async () => {
+      const insertPayload = {
+        agency_id: agencyId,
+        address_line1: body.address_line1,
+        address_line2: body.address_line2 ?? null,
+        city: body.city ?? null,
+        postcode: body.postcode,
+        bedrooms: body.bedrooms ?? null,
+        property_type: body.property_type ?? null,
+        tenure: body.tenure ?? null,
+        status: body.status ?? (body.listing_type === "lettings" ? "on_market" : "available"),
+        listing_type: body.listing_type,
+        price_qualifier: body.price_qualifier ?? null,
+        asking_price: body.asking_price ?? null,
+        home_report_value: body.home_report_value ?? null,
+        home_report_url: body.home_report_url ?? null,
+        rent_amount: body.rent_amount ?? null,
+        rent_frequency: body.rent_frequency ?? null,
+        council_tax_band: body.council_tax_band ?? null,
+        epc_rating: body.epc_rating ?? null,
+        vendor_contact_id: body.vendor_contact_id ?? null,
+        viewing_conducted_by: body.viewing_conducted_by ?? "agency_staff",
+        viewing_calendar_id: body.viewing_calendar_id ?? null,
+        viewing_notes: body.viewing_notes ?? null,
+      };
+
+      let ref: string = body.ref ?? generatePropertyRef(body.postcode);
+      let data, error;
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        ({ data, error } = await supabase
+          .from("properties")
+          .insert({ ...insertPayload, ref })
+          .select("*, property_photos(url, sort_order)")
+          .single());
+
+        if (!error) break;
+        if (error.code === "23505" && !body.ref) {
+          ref = generatePropertyRef(body.postcode);
+          continue;
+        }
+        break;
+      }
+
+      if (error) {
+        throw new ApiError(
+          error.code === "23505" ? "conflict" : "validation_failed",
+          error.message
+        );
+      }
+      return { status: 201, body: toProperty(data) };
+    }
+  );
+
+  return NextResponse.json(responseBody, { status });
 });

@@ -14,7 +14,7 @@ import type {
 // has no direct database access. Requests carry the same x-api-key n8n/Vapi
 // use; the browser never sees it, only this server-side fetch does.
 
-function baseUrl() {
+export function baseUrl() {
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return `http://localhost:${process.env.PORT ?? "3000"}`;
 }
