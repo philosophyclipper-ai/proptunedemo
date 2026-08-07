@@ -9,6 +9,7 @@ import {
   getViewings,
 } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
+import { resolveViewingFeedback } from "@/lib/ui/resolve-viewing-feedback";
 import { formatAddress, formatDate, formatMoney, formatPrice, titleCase } from "@/lib/ui/format";
 import { propertyStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
@@ -35,12 +36,16 @@ export default async function PropertyDetailPage({
         : Promise.resolve(null),
     ]);
 
-  const contactsMap = await resolveContacts([
-    ...viewingsResult.viewings.map((v) => v.contact_id),
-    ...offersResult.offers.map((o) => o.contact_id),
-    ...offersResult.offers.map((o) => o.solicitor_contact_id),
+  const [contactsMap, feedbackMap] = await Promise.all([
+    resolveContacts([
+      ...viewingsResult.viewings.map((v) => v.contact_id),
+      ...offersResult.offers.map((o) => o.contact_id),
+      ...offersResult.offers.map((o) => o.solicitor_contact_id),
+    ]),
+    resolveViewingFeedback(viewingsResult.viewings.map((v) => v.id)),
   ]);
   const contacts = Object.fromEntries(contactsMap);
+  const feedback = Object.fromEntries(feedbackMap);
 
   return (
     <div className="p-8">
@@ -116,6 +121,7 @@ export default async function PropertyDetailPage({
               offers={offersResult.offers}
               notes={notesResult.notes}
               contacts={contacts}
+              feedback={feedback}
             />
           </section>
         </div>

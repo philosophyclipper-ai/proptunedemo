@@ -75,6 +75,10 @@ export async function getPropertyNotes(ref: string) {
   return apiGet<{ notes: Note[] }>(`/api/v1/properties/${ref}/notes`);
 }
 
+export async function getNotes(params: { entity_type: string; entity_id: string }) {
+  return apiGet<{ notes: Note[] }>("/api/v1/notes", params);
+}
+
 export async function getContact(id: string) {
   return apiGet<Contact>(`/api/v1/contacts/${id}`);
 }

@@ -12,12 +12,13 @@ type Props = {
   offers: Offer[];
   notes: Note[];
   contacts: Record<string, Contact>;
+  feedback: Record<string, Note[]>;
 };
 
 const TABS = ["Viewings", "Offers & Notes of Interest", "Notes"] as const;
 type Tab = (typeof TABS)[number];
 
-export function PropertyTabs({ viewings, offers, notes, contacts }: Props) {
+export function PropertyTabs({ viewings, offers, notes, contacts, feedback }: Props) {
   const [active, setActive] = useState<Tab>("Viewings");
   const counts: Record<Tab, number> = {
     Viewings: viewings.length,
@@ -46,7 +47,9 @@ export function PropertyTabs({ viewings, offers, notes, contacts }: Props) {
       </div>
 
       <div className="py-4">
-        {active === "Viewings" && <ViewingsTab viewings={viewings} contacts={contacts} />}
+        {active === "Viewings" && (
+          <ViewingsTab viewings={viewings} contacts={contacts} feedback={feedback} />
+        )}
         {active === "Offers & Notes of Interest" && (
           <OffersTab offers={offers} contacts={contacts} />
         )}
@@ -56,27 +59,57 @@ export function PropertyTabs({ viewings, offers, notes, contacts }: Props) {
   );
 }
 
-function ViewingsTab({ viewings, contacts }: { viewings: Viewing[]; contacts: Record<string, Contact> }) {
+function ViewingsTab({
+  viewings,
+  contacts,
+  feedback,
+}: {
+  viewings: Viewing[];
+  contacts: Record<string, Contact>;
+  feedback: Record<string, Note[]>;
+}) {
   if (viewings.length === 0) return <EmptyState label="No viewings yet." />;
   return (
     <ul className="flex flex-col gap-2">
-      {viewings.map((v) => (
-        <li key={v.id} className="rounded border border-border-hairline bg-cream p-3">
-          <div className="flex items-center justify-between">
-            <Link href={`/contacts/${v.contact_id}`} className="font-medium text-navy-950 hover:underline">
-              {contacts[v.contact_id]?.name ?? "Unknown contact"}
-            </Link>
-            <Pill tone={viewingStatusTone(v.status)} label={titleCase(v.status)} />
-          </div>
-          <p className="mt-1 text-sm text-ink-muted">
-            {v.scheduled_at
-              ? formatDateTime(v.scheduled_at)
-              : v.proposed_times && v.proposed_times.length > 0
-                ? `Proposed: ${v.proposed_times.map((t) => formatDateTime(t)).join(", ")}`
-                : "No time set"}
-          </p>
-        </li>
-      ))}
+      {viewings.map((v) => {
+        const viewingFeedback = feedback[v.id] ?? [];
+        return (
+          <li key={v.id} className="rounded border border-border-hairline bg-cream p-3">
+            <div className="flex items-center justify-between">
+              <Link href={`/contacts/${v.contact_id}`} className="font-medium text-navy-950 hover:underline">
+                {contacts[v.contact_id]?.name ?? "Unknown contact"}
+              </Link>
+              <Pill tone={viewingStatusTone(v.status)} label={titleCase(v.status)} />
+            </div>
+            <p className="mt-1 text-sm text-ink-muted">
+              {v.scheduled_at
+                ? formatDateTime(v.scheduled_at)
+                : v.proposed_times && v.proposed_times.length > 0
+                  ? `Proposed: ${v.proposed_times.map((t) => formatDateTime(t)).join(", ")}`
+                  : "No time set"}
+            </p>
+            {viewingFeedback.length > 0 && (
+              <div className="mt-2 flex flex-col gap-2 border-t border-border-hairline pt-2">
+                {viewingFeedback.map((note) => (
+                  <div key={note.id}>
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                        Feedback
+                      </span>
+                      <Pill
+                        tone={note.author_type === "ai" ? "amber" : "navy"}
+                        label={note.author_type === "ai" ? "AI" : "Staff"}
+                      />
+                      <span className="text-xs text-ink-faint">{formatDateTime(note.created_at)}</span>
+                    </div>
+                    <p className="text-sm text-ink">{note.body}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
