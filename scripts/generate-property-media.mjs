@@ -73,13 +73,20 @@ async function generateReportPdf(ref, address) {
 const PROPERTIES = [
   { ref: "EH12345", address: "14 Rose Street, Edinburgh, EH2 2PR", photos: 2, report: true },
   { ref: "EH23456", address: "2 Dean Village Court, Flat 3, Edinburgh, EH4 3BS", photos: 1, report: false },
-  { ref: "G34567", address: "9 Byres Road, Glasgow, G12 8SQ", photos: 0, report: true },
-  { ref: "EH56789", address: "3 Leith Walk, Top Floor, Edinburgh, EH6 8LN", photos: 0, report: true },
+  { ref: "G34567", address: "9 Byres Road, Glasgow, G12 8SQ", photos: 1, report: true },
+  { ref: "EH45678", address: "71 Morningside Road, Edinburgh, EH10 4AZ", photos: 2, report: false },
+  { ref: "EH56789", address: "3 Leith Walk, Top Floor, Edinburgh, EH6 8LN", photos: 2, report: true },
+  { ref: "G45678", address: "18 Great Western Road, Glasgow, G4 9AH", photos: 1, report: false },
   { ref: "EH67890", address: "22 Marchmont Crescent, Edinburgh, EH9 1HG", photos: 2, report: true },
   { ref: "EH78901", address: "5 Comely Bank Avenue, Edinburgh, EH4 1EP", photos: 1, report: false },
   { ref: "G56789", address: "88 Sauchiehall Street, Flat 2/1, Glasgow, G2 3DH", photos: 2, report: true },
   { ref: "G67890", address: "14 Kelvingrove Street, Glasgow, G3 7RN", photos: 1, report: true },
   { ref: "FK12345", address: "3 Ochil View, Stirling, FK8 2QY", photos: 2, report: false },
+  { ref: "AB12345", address: "19 Union Grove, Aberdeen, AB10 6SD", photos: 1, report: false },
+  { ref: "EH89012", address: "8 Dalry Road, Edinburgh, EH11 2BT", photos: 2, report: false },
+  { ref: "G78901", address: "45 Dumbarton Road, Flat 2, Glasgow, G11 6PN", photos: 1, report: false },
+  { ref: "EH90123", address: "12 Restalrig Road, Edinburgh, EH6 8BN", photos: 2, report: false },
+  { ref: "AB23456", address: "7 Rosemount Place, Flat 1, Aberdeen, AB25 2XA", photos: 1, report: false },
 ];
 
 async function ensureBucket() {
