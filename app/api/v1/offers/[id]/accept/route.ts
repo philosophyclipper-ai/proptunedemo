@@ -22,7 +22,7 @@ export const POST = withErrorHandling(async (request, { params }) => {
         .from("offers")
         .update({ status: "accepted" })
         .eq("id", id)
-        .select("*")
+        .select("*, properties(ref)")
         .single();
 
       if (error) throw new ApiError("validation_failed", error.message);

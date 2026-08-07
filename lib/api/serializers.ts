@@ -1,7 +1,20 @@
 // Flat, one-level, voice-safe shapes. agency_id is dropped everywhere —
 // there's one agency, so it's noise the agent would never say aloud.
+// Properties are always referenced by ref, never by their internal id —
+// callers that embedded `properties(ref)` in their select get it read here.
 
 type Row = Record<string, unknown>;
+
+function propertyRef(row: Row): string | null {
+  const embedded = row.properties as { ref: string } | null;
+  return embedded?.ref ?? null;
+}
+
+function photoUrls(row: Row): string[] {
+  const embedded = row.property_photos as { url: string; sort_order: number }[] | undefined;
+  if (!embedded) return [];
+  return [...embedded].sort((a, b) => a.sort_order - b.sort_order).map((p) => p.url);
+}
 
 export function toContact(row: Row) {
   return {
@@ -36,6 +49,7 @@ export function toProperty(row: Row) {
     vendor_contact_id: row.vendor_contact_id,
     viewing_conducted_by: row.viewing_conducted_by,
     closing_date: row.closing_date,
+    photos: photoUrls(row),
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -44,7 +58,7 @@ export function toProperty(row: Row) {
 export function toValuation(row: Row) {
   return {
     id: row.id,
-    property_id: row.property_id,
+    property_ref: propertyRef(row),
     contact_id: row.contact_id,
     address_line1: row.address_line1,
     address_line2: row.address_line2,
@@ -62,7 +76,7 @@ export function toValuation(row: Row) {
 export function toViewing(row: Row) {
   return {
     id: row.id,
-    property_id: row.property_id,
+    property_ref: propertyRef(row),
     contact_id: row.contact_id,
     status: row.status,
     proposed_times: row.proposed_times,
@@ -76,7 +90,7 @@ export function toViewing(row: Row) {
 export function toOffer(row: Row) {
   return {
     id: row.id,
-    property_id: row.property_id,
+    property_ref: propertyRef(row),
     contact_id: row.contact_id,
     type: row.type,
     amount: row.amount,
@@ -91,7 +105,7 @@ export function toOffer(row: Row) {
 export function toMaintenanceIssue(row: Row) {
   return {
     id: row.id,
-    property_id: row.property_id,
+    property_ref: propertyRef(row),
     contact_id: row.contact_id,
     description: row.description,
     status: row.status,
@@ -142,7 +156,7 @@ export function toTimelineEntry(row: Row) {
     id: row.id,
     kind: row.kind,
     contact_id: row.contact_id,
-    property_id: row.property_id,
+    author_type: row.author_type,
     summary: row.summary,
     occurred_at: row.occurred_at,
   };

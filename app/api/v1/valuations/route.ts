@@ -4,14 +4,17 @@ import { withErrorHandling } from "@/lib/api/handler";
 import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
 import { toValuation } from "@/lib/api/serializers";
-import { getContactByPhone, requireContactById } from "@/lib/api/lookups";
+import { getContactByPhone, getPropertyByRef, requireContactById } from "@/lib/api/lookups";
 
 export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
   const { searchParams } = new URL(request.url);
   const phone = searchParams.get("phone");
 
-  let query = supabase.from("valuations").select("*").eq("agency_id", agencyId);
+  let query = supabase
+    .from("valuations")
+    .select("*, properties(ref)")
+    .eq("agency_id", agencyId);
 
   if (phone) {
     const contact = await getContactByPhone(supabase, agencyId, phone);
@@ -38,6 +41,9 @@ export const POST = withErrorHandling(async (request) => {
   }
 
   await requireContactById(supabase, agencyId, body.contact_id);
+  const property = body.property_ref
+    ? await getPropertyByRef(supabase, agencyId, body.property_ref)
+    : null;
 
   const { status, body: responseBody } = await withIdempotency(
     supabase,
@@ -49,7 +55,7 @@ export const POST = withErrorHandling(async (request) => {
         .from("valuations")
         .insert({
           agency_id: agencyId,
-          property_id: body.property_id ?? null,
+          property_id: property?.id ?? null,
           contact_id: body.contact_id,
           address_line1: body.address_line1,
           address_line2: body.address_line2 ?? null,
@@ -62,7 +68,10 @@ export const POST = withErrorHandling(async (request) => {
         .single();
 
       if (error) throw new ApiError("validation_failed", error.message);
-      return { status: 201, body: toValuation(data) };
+      return {
+        status: 201,
+        body: toValuation({ ...data, properties: property ? { ref: property.ref } : null }),
+      };
     }
   );
 

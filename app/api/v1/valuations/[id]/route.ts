@@ -3,6 +3,7 @@ import { requireApiContext } from "@/lib/api/context";
 import { withErrorHandling } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
 import { toValuation } from "@/lib/api/serializers";
+import { getPropertyByRef } from "@/lib/api/lookups";
 
 export const PATCH = withErrorHandling(async (request, { params }) => {
   const { id } = await params;
@@ -10,14 +11,14 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
   const body = await request.json();
 
   const updates: Record<string, unknown> = {};
-  for (const field of [
-    "property_id",
-    "estimated_value",
-    "status",
-    "valuation_date",
-    "notes",
-  ]) {
+  for (const field of ["estimated_value", "status", "valuation_date", "notes"]) {
     if (body[field] !== undefined) updates[field] = body[field];
+  }
+  if (body.property_ref !== undefined) {
+    const property = body.property_ref
+      ? await getPropertyByRef(supabase, agencyId, body.property_ref)
+      : null;
+    updates.property_id = property?.id ?? null;
   }
 
   const { data, error } = await supabase
@@ -25,7 +26,7 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     .update(updates)
     .eq("agency_id", agencyId)
     .eq("id", id)
-    .select("*")
+    .select("*, properties(ref)")
     .maybeSingle();
 
   if (error) throw new ApiError("validation_failed", error.message);

@@ -14,7 +14,10 @@ export const GET = withErrorHandling(async (request) => {
   const from = searchParams.get("from");
   const to = searchParams.get("to");
 
-  let query = supabase.from("viewings").select("*").eq("agency_id", agencyId);
+  let query = supabase
+    .from("viewings")
+    .select("*, properties(ref)")
+    .eq("agency_id", agencyId);
 
   if (phone) {
     const contact = await getContactByPhone(supabase, agencyId, phone);
@@ -84,7 +87,10 @@ export const POST = withErrorHandling(async (request) => {
           body: `Proposed times: ${body.proposed_times.join(", ")}`,
         });
 
-        return { status: 201, body: toViewing(viewing) };
+        return {
+          status: 201,
+          body: toViewing({ ...viewing, properties: { ref: property.ref } }),
+        };
       }
 
       if (!body.scheduled_at) {
@@ -108,7 +114,10 @@ export const POST = withErrorHandling(async (request) => {
         .single();
 
       if (error) throw new ApiError("validation_failed", error.message);
-      return { status: 201, body: toViewing(viewing) };
+      return {
+        status: 201,
+        body: toViewing({ ...viewing, properties: { ref: property.ref } }),
+      };
     }
   );
 

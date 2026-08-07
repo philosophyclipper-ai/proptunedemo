@@ -8,8 +8,17 @@ import { getPropertyByRef } from "@/lib/api/lookups";
 export const GET = withErrorHandling(async (request, { params }) => {
   const { ref } = await params;
   const { supabase, agencyId } = await requireApiContext(request);
-  const property = await getPropertyByRef(supabase, agencyId, ref);
-  return NextResponse.json(toProperty(property));
+
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*, property_photos(url, sort_order)")
+    .eq("agency_id", agencyId)
+    .eq("ref", ref)
+    .maybeSingle();
+
+  if (error) throw new ApiError("validation_failed", error.message);
+  if (!data) throw new ApiError("not_found", `No property with ref ${ref}`);
+  return NextResponse.json(toProperty(data));
 });
 
 // UI only — status and closing_date are never set by an agent.

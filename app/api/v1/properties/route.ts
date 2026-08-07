@@ -16,7 +16,10 @@ export const GET = withErrorHandling(async (request) => {
   const status = searchParams.get("status");
   const cursor = searchParams.get("cursor");
 
-  let query = supabase.from("properties").select("*").eq("agency_id", agencyId);
+  let query = supabase
+    .from("properties")
+    .select("*, property_photos(url, sort_order)")
+    .eq("agency_id", agencyId);
 
   if (postcode) query = query.ilike("postcode", `${postcode}%`);
   if (minPrice) query = query.gte("asking_price", Number(minPrice));

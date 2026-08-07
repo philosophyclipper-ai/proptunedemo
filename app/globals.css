@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-cream: #faf6ec;
+  --color-cream-dim: #f1e9d8;
+  --color-paper: #ffffff;
+
+  --color-navy-950: #0a1220;
+  --color-navy-900: #0f1b30;
+  --color-navy-800: #172642;
+  --color-navy-700: #223255;
+  --color-navy-600: #35496f;
+
+  --color-ink: #14202f;
+  --color-ink-muted: #5b6b80;
+  --color-ink-faint: #8b97a8;
+
+  --color-amber-400: #e3ac47;
+  --color-amber-500: #c98a2c;
+  --color-amber-600: #a86c1c;
+  --color-amber-tint: #f7e9cd;
+
+  --color-green-600: #3f7a4f;
+  --color-green-tint: #e2efe2;
+  --color-red-600: #a8422f;
+  --color-red-tint: #f3e2dd;
+  --color-gray-tint: #e7e4dc;
+
+  --border-hairline: #e4dcc9;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-cream: var(--color-cream);
+  --color-cream-dim: var(--color-cream-dim);
+  --color-paper: var(--color-paper);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-navy-950: var(--color-navy-950);
+  --color-navy-900: var(--color-navy-900);
+  --color-navy-800: var(--color-navy-800);
+  --color-navy-700: var(--color-navy-700);
+  --color-navy-600: var(--color-navy-600);
+
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-ink-faint: var(--color-ink-faint);
+
+  --color-amber-400: var(--color-amber-400);
+  --color-amber-500: var(--color-amber-500);
+  --color-amber-600: var(--color-amber-600);
+  --color-amber-tint: var(--color-amber-tint);
+
+  --color-green-600: var(--color-green-600);
+  --color-green-tint: var(--color-green-tint);
+  --color-red-600: var(--color-red-600);
+  --color-red-tint: var(--color-red-tint);
+  --color-gray-tint: var(--color-gray-tint);
+
+  --color-border-hairline: var(--border-hairline);
+
+  --font-heading: var(--font-fraunces);
+  --font-body: var(--font-inter);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--color-amber-tint);
+  color: var(--color-ink);
 }

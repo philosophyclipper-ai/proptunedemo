@@ -12,7 +12,10 @@ export const GET = withErrorHandling(async (request) => {
   const phone = searchParams.get("phone");
   const propertyRef = searchParams.get("property_ref");
 
-  let query = supabase.from("maintenance_issues").select("*").eq("agency_id", agencyId);
+  let query = supabase
+    .from("maintenance_issues")
+    .select("*, properties(ref)")
+    .eq("agency_id", agencyId);
 
   if (phone) {
     const contact = await getContactByPhone(supabase, agencyId, phone);
@@ -60,7 +63,10 @@ export const POST = withErrorHandling(async (request) => {
         .single();
 
       if (error) throw new ApiError("validation_failed", error.message);
-      return { status: 201, body: toMaintenanceIssue(data) };
+      return {
+        status: 201,
+        body: toMaintenanceIssue({ ...data, properties: { ref: property.ref } }),
+      };
     }
   );
 
