@@ -37,11 +37,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-# cloudflare
-.open-next
-.wrangler
-cloudflare-env.d.ts
-
 # supabase CLI local state
 supabase/.temp
 

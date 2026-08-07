@@ -6,8 +6,7 @@ agents and to develop n8n integration patterns that port to real client CRMs
 clients. See [CLAUDE.md](CLAUDE.md) for the full domain spec and
 [API.md](API.md) for the endpoint reference.
 
-Next.js App Router + TypeScript, Supabase Postgres, deployed to Cloudflare
-Workers via OpenNext.
+Next.js App Router + TypeScript, Supabase Postgres, deployed to Vercel.
 
 ## Running locally
 

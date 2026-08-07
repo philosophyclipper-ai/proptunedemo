@@ -9,7 +9,7 @@ It is not a product, will not be sold or hosted for clients, and has no users.
 ## Stack
 
 Next.js App Router + TypeScript · Supabase Postgres (EU, demo-only project) ·
-Supabase Storage · Tailwind · deployed to Cloudflare Workers.
+Supabase Storage · Tailwind · deployed to Vercel.
 
 No separate backend. No Redis, queues, websockets, or search engine.
 
