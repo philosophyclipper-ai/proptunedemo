@@ -10,6 +10,7 @@ const SECTIONS = {
       { href: "/sales", label: "Listings" },
       { href: "/sales/offers", label: "Offers" },
       { href: "/sales/viewings", label: "Viewings" },
+      { href: "/sales/contacts", label: "Contacts" },
     ],
   },
   lettings: {
@@ -19,6 +20,7 @@ const SECTIONS = {
       { href: "/lettings/applications", label: "Applications" },
       { href: "/lettings/viewings", label: "Viewings" },
       { href: "/lettings/maintenance", label: "Maintenance" },
+      { href: "/lettings/contacts", label: "Contacts" },
     ],
   },
 } as const;
@@ -75,7 +77,7 @@ export function SidebarNav() {
         })}
       </nav>
 
-      <div className="mt-auto px-5 py-4 text-[11px] text-navy-600">Read-only demo</div>
+      <div className="mt-auto px-5 py-4 text-[11px] text-navy-600">PropTune Demo CRM</div>
     </aside>
   );
 }

@@ -238,3 +238,34 @@ export async function createMaintenanceAction(
     return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
   }
 }
+
+export async function createContactAction(
+  section: "sales" | "lettings",
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const name = str(formData, "name");
+    const phone = str(formData, "phone_primary");
+    if (!name || !phone) throw new Error("Name and phone are required");
+
+    const roles = formData.getAll("roles").filter((r): r is string => typeof r === "string");
+    if (roles.length === 0) throw new Error("Select at least one role");
+
+    const payload = {
+      name,
+      phone_primary: phone,
+      email: str(formData, "email") ?? null,
+      company: str(formData, "company") ?? null,
+      roles,
+    };
+
+    const result = await apiPost<Contact>("/api/v1/contacts", payload);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidatePath(section === "sales" ? "/sales/contacts" : "/lettings/contacts");
+    return { status: "success", redirectTo: `/contacts/${result.data.id}` };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}

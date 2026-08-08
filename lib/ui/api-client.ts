@@ -84,6 +84,21 @@ export async function getContact(id: string) {
   return apiGet<Contact>(`/api/v1/contacts/${id}`);
 }
 
+export async function getContacts(params: { q?: string; cursor?: string } = {}) {
+  return apiGet<{ contacts: Contact[]; next_cursor: string | null }>("/api/v1/contacts", params);
+}
+
+export async function getAllContacts(): Promise<Contact[]> {
+  const all: Contact[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await getContacts({ cursor });
+    all.push(...page.contacts);
+    cursor = page.next_cursor ?? undefined;
+  } while (cursor);
+  return all;
+}
+
 export async function getContactTimeline(id: string) {
   return apiGet<{ timeline: TimelineEntry[] }>(`/api/v1/timeline/contact/${id}`);
 }

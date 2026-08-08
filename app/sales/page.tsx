@@ -3,6 +3,7 @@ import { getProperties } from "@/lib/ui/api-client";
 import { PropertyGrid } from "@/components/property-grid";
 import { ListingsFilterForm } from "@/components/listings-filter-form";
 import { AddListingButton } from "@/components/add-listing-button";
+import { AddContactButton } from "@/components/add-contact-button";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All statuses" },
@@ -37,7 +38,10 @@ export default async function SalesListingsPage({
           <h1 className="font-heading text-2xl font-semibold text-navy-950">Sales Listings</h1>
           <p className="text-sm text-ink-muted">{properties.length} properties on this page</p>
         </div>
-        <AddListingButton listingType="sales" />
+        <div className="flex gap-2">
+          <AddContactButton section="sales" />
+          <AddListingButton listingType="sales" />
+        </div>
       </header>
 
       <ListingsFilterForm
