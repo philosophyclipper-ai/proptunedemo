@@ -22,7 +22,7 @@ import { propertyStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
 import { PropertyTabs } from "@/components/property-tabs";
 import { EditListingButton } from "@/components/edit-listing-button";
-import { PropertyQuickActions } from "@/components/property-quick-actions";
+import { AddMaintenanceButton } from "@/components/add-maintenance-button";
 
 export default async function PropertyDetailPage({
   params,
@@ -77,6 +77,7 @@ export default async function PropertyDetailPage({
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Pill tone={propertyStatusTone(property.status)} label={titleCase(property.status)} />
+          {isLettings && <AddMaintenanceButton propertyRef={property.ref} />}
           <EditListingButton
             property={property}
             vendorName={vendorContact?.name}
@@ -153,15 +154,10 @@ export default async function PropertyDetailPage({
           </section>
 
           <section className="rounded-lg border border-border-hairline bg-paper p-5">
-            <div className="mb-4">
-              <PropertyQuickActions
-                propertyRef={property.ref}
-                listingType={property.listing_type}
-                vendorLed={viewingArrangement.conducted_by === "vendor"}
-              />
-            </div>
             <PropertyTabs
+              propertyRef={property.ref}
               listingType={property.listing_type}
+              vendorLed={viewingArrangement.conducted_by === "vendor"}
               viewings={viewingsResult.viewings}
               offers={offersResult.offers}
               notes={notesResult.notes}

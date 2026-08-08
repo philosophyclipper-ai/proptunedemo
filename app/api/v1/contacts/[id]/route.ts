@@ -19,7 +19,7 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
   const body = await request.json();
 
   const updates: Record<string, unknown> = {};
-  for (const field of ["name", "roles", "phone_primary", "phone_secondary", "email"]) {
+  for (const field of ["name", "roles", "phone_primary", "phone_secondary", "email", "company"]) {
     if (body[field] !== undefined) updates[field] = body[field];
   }
 

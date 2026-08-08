@@ -24,6 +24,7 @@ export function toContact(row: Row) {
     phone_primary: row.phone_primary,
     phone_secondary: row.phone_secondary,
     email: row.email,
+    company: row.company,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -85,6 +86,8 @@ export function toViewing(row: Row) {
     proposed_times: row.proposed_times,
     scheduled_at: row.scheduled_at,
     calendar_event_id: row.calendar_event_id,
+    mortgage_status: row.mortgage_status,
+    buyer_property_status: row.buyer_property_status,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };

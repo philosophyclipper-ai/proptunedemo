@@ -8,7 +8,6 @@ const RECEIVED_VIA = [
   { value: "in_person", label: "In Person" },
   { value: "phone", label: "Phone" },
   { value: "email", label: "Email" },
-  { value: "ai_voice", label: "AI Voice" },
   { value: "portal", label: "Portal" },
 ];
 
@@ -66,6 +65,9 @@ export function AddOfferForm({
             </Field>
             <Field label="Phone">
               <input name="solicitor_phone" className={inputClass} />
+            </Field>
+            <Field label="Company">
+              <input name="solicitor_company" className={inputClass} />
             </Field>
           </div>
         </div>

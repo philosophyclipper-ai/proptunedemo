@@ -32,6 +32,7 @@ async function resolveContact(
   const result = await apiPost<Contact>("/api/v1/contacts", {
     name,
     phone_primary: phone,
+    company: str(formData, `${prefix}_company`),
     roles,
   });
   if (!result.ok) throw new Error(result.error);
@@ -157,6 +158,10 @@ export async function createViewingAction(
     if (scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
     if (proposed.length > 0) {
       payload.proposed_times = proposed.map((t) => new Date(t).toISOString());
+    }
+    if (listingType === "sales") {
+      payload.mortgage_status = str(formData, "mortgage_status") ?? null;
+      payload.buyer_property_status = str(formData, "buyer_property_status") ?? null;
     }
 
     const result = await apiPost("/api/v1/viewings", payload);

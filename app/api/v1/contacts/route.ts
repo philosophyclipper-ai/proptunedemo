@@ -87,6 +87,7 @@ export const POST = withErrorHandling(async (request) => {
             roles: mergedRoles,
             phone_secondary: body.phone_secondary ?? existing.phone_secondary,
             email: body.email ?? existing.email,
+            company: body.company ?? existing.company,
           })
           .eq("id", existing.id)
           .select("*")
@@ -105,6 +106,7 @@ export const POST = withErrorHandling(async (request) => {
           phone_primary: body.phone_primary,
           phone_secondary: body.phone_secondary ?? null,
           email: body.email ?? null,
+          company: body.company ?? null,
         })
         .select("*")
         .single();
