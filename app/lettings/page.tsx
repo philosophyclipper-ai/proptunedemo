@@ -11,23 +11,31 @@ const STATUS_OPTIONS = [
   { value: "let", label: "Let" },
 ];
 
+const DEFAULT_STATUS = "on_market";
+
 export default async function LettingsListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; postcode?: string; cursor?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; cursor?: string }>;
 }) {
   const params = await searchParams;
+  // No status in the URL yet = first visit, default to what's actively to
+  // let. An explicit empty string means the negotiator chose "All statuses"
+  // and that should stick, not silently re-default.
+  const resolvedStatus = params.status ?? DEFAULT_STATUS;
+
   const { properties, next_cursor } = await getProperties({
     listing_type: "lettings",
-    status: params.status,
-    postcode: params.postcode,
+    status: resolvedStatus,
+    q: params.q,
     cursor: params.cursor,
   });
 
-  const nextQuery: Record<string, string> = {};
-  if (params.status) nextQuery.status = params.status;
-  if (params.postcode) nextQuery.postcode = params.postcode;
+  const nextQuery: Record<string, string> = { status: resolvedStatus };
+  if (params.q) nextQuery.q = params.q;
   if (next_cursor) nextQuery.cursor = next_cursor;
+
+  const showClear = params.status !== undefined || Boolean(params.q);
 
   return (
     <div className="p-8">
@@ -45,8 +53,9 @@ export default async function LettingsListingsPage({
       <ListingsFilterForm
         basePath="/lettings"
         statusOptions={STATUS_OPTIONS}
-        status={params.status}
-        postcode={params.postcode}
+        status={resolvedStatus}
+        q={params.q}
+        showClear={showClear}
       />
 
       <PropertyGrid properties={properties} />

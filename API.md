@@ -19,13 +19,16 @@ PATCH  /contacts/:id
 ## Properties
 
 ```
-GET    /properties?postcode=&min_price=&max_price=&beds=&type=&status=&listing_type=&cursor=
+GET    /properties?postcode=&q=&min_price=&max_price=&beds=&type=&status=&listing_type=&cursor=
 GET    /properties/:ref
 GET    /properties/:ref/viewing-arrangement
 GET    /properties/:ref/notes      UI only
 POST   /properties                 UI only — onboards a new listing
 PATCH  /properties/:ref            UI only — full listing edit
 ```
+
+`q` is a free-text search across address line 1/2, postcode and city (UI search bar) —
+`postcode` remains a dedicated prefix match, used separately by voice search.
 
 `listing_type` is `sales` | `lettings` — a property is one or the other, never both.
 Lettings properties carry `rent_amount`/`rent_frequency` (`monthly` | `weekly`) instead

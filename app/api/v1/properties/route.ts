@@ -11,6 +11,7 @@ export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
   const { searchParams } = new URL(request.url);
   const postcode = searchParams.get("postcode");
+  const q = searchParams.get("q");
   const minPrice = searchParams.get("min_price");
   const maxPrice = searchParams.get("max_price");
   const beds = searchParams.get("beds");
@@ -25,6 +26,11 @@ export const GET = withErrorHandling(async (request) => {
     .eq("agency_id", agencyId);
 
   if (postcode) query = query.ilike("postcode", `${postcode}%`);
+  if (q) {
+    query = query.or(
+      `address_line1.ilike.%${q}%,address_line2.ilike.%${q}%,postcode.ilike.%${q}%,city.ilike.%${q}%`
+    );
+  }
   if (minPrice) query = query.gte("asking_price", Number(minPrice));
   if (maxPrice) query = query.lte("asking_price", Number(maxPrice));
   if (beds) query = query.eq("bedrooms", Number(beds));

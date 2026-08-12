@@ -44,7 +44,7 @@ async function apiGet<T>(
 export async function getProperties(params: {
   listing_type?: "sales" | "lettings";
   status?: string;
-  postcode?: string;
+  q?: string;
   cursor?: string;
 }) {
   return apiGet<{ properties: Property[]; next_cursor: string | null }>(
