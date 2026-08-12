@@ -1,11 +1,14 @@
 "use client";
 
 import { Modal } from "@/components/modal";
+import { Pill } from "@/components/pill";
 import { QuickEditContactForm } from "@/components/forms/quick-edit-contact-form";
 import { EditViewingFieldsForm } from "@/components/forms/edit-viewing-fields-form";
-import { ViewingQuickActions } from "@/components/forms/viewing-quick-actions";
+import { ApproveViewingButton, ViewingDangerZone } from "@/components/forms/viewing-quick-actions";
 import { AddNoteForm } from "@/components/forms/add-note-form";
 import { NotesList } from "@/components/notes-list";
+import { titleCase } from "@/lib/ui/format";
+import { viewingStatusTone } from "@/lib/ui/status-tone";
 import type { Contact, Note, Viewing } from "@/lib/ui/types";
 import type { ReactNode } from "react";
 
@@ -38,11 +41,10 @@ export function ViewingDetailModal({
     >
       {(close) => (
         <div className="flex flex-col gap-5">
-          <ViewingQuickActions
-            viewing={viewing}
-            revalidatePaths={revalidatePaths}
-            onDeleted={close}
-          />
+          <div className="flex items-center justify-between gap-3">
+            <Pill tone={viewingStatusTone(viewing.status)} label={titleCase(viewing.status)} />
+            <ApproveViewingButton viewing={viewing} revalidatePaths={revalidatePaths} />
+          </div>
 
           {contact && (
             <section>
@@ -73,6 +75,8 @@ export function ViewingDetailModal({
               />
             </div>
           </section>
+
+          <ViewingDangerZone viewing={viewing} revalidatePaths={revalidatePaths} onDeleted={close} />
         </div>
       )}
     </Modal>

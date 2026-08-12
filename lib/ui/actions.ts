@@ -342,9 +342,17 @@ export async function updateViewingAction(
 ): Promise<ActionState> {
   try {
     const scheduledAt = str(formData, "scheduled_at");
-    const payload: Record<string, unknown> = {
-      status: str(formData, "status"),
-    };
+    const payload: Record<string, unknown> = {};
+    // The edit form submits a "Confirmed" checkbox (marked by this hidden
+    // field) rather than a raw status value — an unchecked box means
+    // requested, not "leave untouched", so it's read explicitly here.
+    // Quick-action buttons (Approve/Cancel) skip the marker and send status
+    // directly via a hidden input instead.
+    if (formData.has("confirmed_editable")) {
+      payload.status = formData.get("confirmed") === "on" ? "confirmed" : "requested";
+    } else {
+      payload.status = str(formData, "status");
+    }
     if (scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
 
     const result = await apiPatch(`/api/v1/viewings/${viewingId}`, payload);

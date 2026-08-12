@@ -30,7 +30,32 @@ function StatusButton({
   );
 }
 
-export function ViewingQuickActions({
+// One-click path for the highest-frequency action on a fresh booking: a
+// vendor/landlord confirming a proposed slot. Only shown while requested —
+// once confirmed, the checkbox in EditViewingFieldsForm covers the rest.
+export function ApproveViewingButton({
+  viewing,
+  revalidatePaths,
+}: {
+  viewing: Viewing;
+  revalidatePaths: string[];
+}) {
+  if (viewing.status !== "requested") return null;
+
+  return (
+    <StatusButton
+      viewing={viewing}
+      revalidatePaths={revalidatePaths}
+      status="confirmed"
+      label="Approve Viewing"
+      className="cursor-pointer rounded bg-green-700 px-3 py-1.5 text-sm font-medium text-cream hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+    />
+  );
+}
+
+// Destructive/terminal actions live together at the bottom of the modal,
+// away from the routine edit controls above.
+export function ViewingDangerZone({
   viewing,
   revalidatePaths,
   onDeleted,
@@ -46,26 +71,8 @@ export function ViewingQuickActions({
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {viewing.status === "requested" && (
-        <>
-          <StatusButton
-            viewing={viewing}
-            revalidatePaths={revalidatePaths}
-            status="confirmed"
-            label="Approve"
-            className="cursor-pointer rounded bg-green-700 px-3 py-1.5 text-sm font-medium text-cream hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          <StatusButton
-            viewing={viewing}
-            revalidatePaths={revalidatePaths}
-            status="cancelled"
-            label="Decline"
-            className="cursor-pointer rounded border border-red-700 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-          />
-        </>
-      )}
-      {viewing.status === "confirmed" && (
+    <div className="flex items-center gap-2 border-t border-border-hairline pt-4">
+      {viewing.status !== "cancelled" && (
         <StatusButton
           viewing={viewing}
           revalidatePaths={revalidatePaths}

@@ -5,13 +5,6 @@ import { updateViewingAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
 import type { Viewing } from "@/lib/ui/types";
 
-const STATUSES = [
-  { value: "requested", label: "Requested" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "completed", label: "Completed" },
-];
-
 function toLocalInputValue(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -28,19 +21,25 @@ export function EditViewingFieldsForm({
 }) {
   const action = updateViewingAction.bind(null, viewing.id, revalidatePaths);
   const { state, formAction, pending } = useMutationForm(action);
+  const isActive = viewing.status === "requested" || viewing.status === "confirmed";
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Status">
-          <select name="status" defaultValue={viewing.status} className={inputClass}>
-            {STATUSES.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </Field>
+      <div className="grid grid-cols-2 gap-3 items-end">
+        {isActive && (
+          <>
+            <input type="hidden" name="confirmed_editable" value="1" />
+            <label className="flex items-center gap-2 pb-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                name="confirmed"
+                defaultChecked={viewing.status === "confirmed"}
+                className="h-4 w-4"
+              />
+              Confirmed
+            </label>
+          </>
+        )}
         <Field label="Scheduled Time">
           <input
             name="scheduled_at"
