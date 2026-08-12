@@ -9,7 +9,7 @@ import {
   getViewings,
 } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
-import { resolveViewingFeedback } from "@/lib/ui/resolve-viewing-feedback";
+import { resolveNotesByEntity } from "@/lib/ui/resolve-notes";
 import {
   formatAddress,
   formatDate,
@@ -45,16 +45,25 @@ export default async function PropertyDetailPage({
         : Promise.resolve(null),
     ]);
 
-  const [contactsMap, feedbackMap] = await Promise.all([
+  const [contactsMap, feedbackMap, offerNotesMap] = await Promise.all([
     resolveContacts([
       ...viewingsResult.viewings.map((v) => v.contact_id),
       ...offersResult.offers.map((o) => o.contact_id),
       ...offersResult.offers.map((o) => o.solicitor_contact_id),
+      ...offersResult.offers.flatMap((o) => o.additional_contacts.map((c) => c.id)),
     ]),
-    resolveViewingFeedback(viewingsResult.viewings.map((v) => v.id)),
+    resolveNotesByEntity(
+      "viewing",
+      viewingsResult.viewings.map((v) => v.id)
+    ),
+    resolveNotesByEntity(
+      "offer",
+      offersResult.offers.map((o) => o.id)
+    ),
   ]);
   const contacts = Object.fromEntries(contactsMap);
   const feedback = Object.fromEntries(feedbackMap);
+  const offerNotes = Object.fromEntries(offerNotesMap);
   const isLettings = property.listing_type === "lettings";
 
   return (
@@ -163,6 +172,7 @@ export default async function PropertyDetailPage({
               notes={notesResult.notes}
               contacts={contacts}
               feedback={feedback}
+              offerNotes={offerNotes}
             />
           </section>
         </div>

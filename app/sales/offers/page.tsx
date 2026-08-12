@@ -4,6 +4,7 @@ export default function SalesOffersPage() {
   return (
     <OffersBoard
       listingType="sales"
+      basePath="/sales/offers"
       heading="Offers Board"
       noteLabel="Note of Interest"
       firmLabel="Offer"

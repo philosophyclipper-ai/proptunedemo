@@ -4,6 +4,7 @@ export default function LettingsApplicationsPage() {
   return (
     <OffersBoard
       listingType="lettings"
+      basePath="/lettings/applications"
       heading="Applications"
       noteLabel="Enquiry"
       firmLabel="Application"

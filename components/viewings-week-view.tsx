@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { getAllProperties, getViewings } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
+import { resolveNotesByEntity } from "@/lib/ui/resolve-notes";
 import { addDays, isSameDay, startOfWeek, toDateParam } from "@/lib/ui/dates";
 import { formatDate, formatTime, titleCase } from "@/lib/ui/format";
 import { Pill } from "@/components/pill";
 import { viewingStatusTone } from "@/lib/ui/status-tone";
+import { ViewingDetailModal } from "@/components/viewing-detail-modal";
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -34,7 +36,13 @@ export async function ViewingsWeekView({
     (v) => v.property_ref && propertyByRef.get(v.property_ref)?.listing_type === listingType
   );
 
-  const contacts = await resolveContacts(viewings.map((v) => v.contact_id));
+  const [contacts, notes] = await Promise.all([
+    resolveContacts(viewings.map((v) => v.contact_id)),
+    resolveNotesByEntity(
+      "viewing",
+      viewings.map((v) => v.id)
+    ),
+  ]);
 
   const weekViewings = viewings.filter(
     (v) => v.scheduled_at && new Date(v.scheduled_at) >= monday && new Date(v.scheduled_at) < weekEnd
@@ -44,6 +52,7 @@ export async function ViewingsWeekView({
   const prevWeek = toDateParam(addDays(monday, -7));
   const nextWeek = toDateParam(addDays(monday, 7));
   const today = new Date();
+  const revalidatePaths = [basePath];
 
   return (
     <div className="p-8">
@@ -88,21 +97,31 @@ export async function ViewingsWeekView({
 
               <ul className="flex flex-col gap-2">
                 {dayViewings.map((v) => (
-                  <li key={v.id} className="rounded border border-border-hairline bg-cream p-2 text-xs">
+                  <ViewingDetailModal
+                    key={v.id}
+                    viewing={v}
+                    contact={contacts.get(v.contact_id)}
+                    notes={notes.get(v.id) ?? []}
+                    revalidatePaths={revalidatePaths}
+                    className="cursor-pointer rounded border border-border-hairline bg-cream p-2 text-xs hover:border-amber-500"
+                  >
                     <div className="flex items-center justify-between gap-1">
                       <span className="font-medium text-ink">{formatTime(v.scheduled_at!)}</span>
                       <Pill tone={viewingStatusTone(v.status)} label={titleCase(v.status)} />
                     </div>
                     <p className="mt-1 text-ink-muted">
                       {v.property_ref && (
-                        <Link href={`/properties/${v.property_ref}`} className="hover:underline">
+                        <Link
+                          href={`/properties/${v.property_ref}`}
+                          className="hover:underline"
+                        >
                           {propertyByRef.get(v.property_ref)?.address_line1 ?? v.property_ref}
                         </Link>
                       )}
                       <br />
                       {contacts.get(v.contact_id)?.name ?? "Unknown contact"}
                     </p>
-                  </li>
+                  </ViewingDetailModal>
                 ))}
               </ul>
             </div>
@@ -117,14 +136,21 @@ export async function ViewingsWeekView({
           </h2>
           <ul className="flex flex-col gap-2">
             {awaitingViewings.map((v) => (
-              <li
+              <ViewingDetailModal
                 key={v.id}
-                className="rounded-lg border border-border-hairline bg-paper p-3 text-sm"
+                viewing={v}
+                contact={contacts.get(v.contact_id)}
+                notes={notes.get(v.id) ?? []}
+                revalidatePaths={revalidatePaths}
+                className="cursor-pointer rounded-lg border border-border-hairline bg-paper p-3 text-sm hover:border-amber-500"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium text-navy-950">
                     {v.property_ref && (
-                      <Link href={`/properties/${v.property_ref}`} className="hover:underline">
+                      <Link
+                        href={`/properties/${v.property_ref}`}
+                        className="hover:underline"
+                      >
                         {propertyByRef.get(v.property_ref)?.address_line1 ?? v.property_ref}
                       </Link>
                     )}{" "}
@@ -137,7 +163,7 @@ export async function ViewingsWeekView({
                     Proposed: {v.proposed_times.map((t) => formatDate(t)).join(", ")}
                   </p>
                 )}
-              </li>
+              </ViewingDetailModal>
             ))}
           </ul>
         </section>

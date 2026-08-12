@@ -87,6 +87,7 @@ export type Offer = {
   id: string;
   property_ref: string | null;
   contact_id: string;
+  additional_contacts: { id: string; name: string; phone_primary: string }[];
   type: "note_of_interest" | "offer";
   amount: number | null;
   status: string;

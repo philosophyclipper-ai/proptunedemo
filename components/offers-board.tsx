@@ -1,21 +1,25 @@
 import Link from "next/link";
 import { getAllProperties, getOffers } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
+import { resolveNotesByEntity } from "@/lib/ui/resolve-notes";
 import { formatDateTime, formatMoney, titleCase } from "@/lib/ui/format";
 import { offerStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
+import { OfferDetailModal } from "@/components/offer-detail-modal";
 import type { Offer } from "@/lib/ui/types";
 
 // Shared by Sales' Offers board and Lettings' Applications board — same
 // underlying offers/notes-of-interest table, just relabeled per section.
 export async function OffersBoard({
   listingType,
+  basePath,
   heading,
   noteLabel,
   firmLabel,
   emptyLabel,
 }: {
   listingType: "sales" | "lettings";
+  basePath: string;
   heading: string;
   noteLabel: string;
   firmLabel: string;
@@ -28,9 +32,16 @@ export async function OffersBoard({
     (o) => o.property_ref && propertyByRef.get(o.property_ref)?.listing_type === listingType
   );
 
-  const contacts = await resolveContacts([
-    ...offers.map((o) => o.contact_id),
-    ...offers.map((o) => o.solicitor_contact_id),
+  const [contacts, notes] = await Promise.all([
+    resolveContacts([
+      ...offers.map((o) => o.contact_id),
+      ...offers.map((o) => o.solicitor_contact_id),
+      ...offers.flatMap((o) => o.additional_contacts.map((c) => c.id)),
+    ]),
+    resolveNotesByEntity(
+      "offer",
+      offers.map((o) => o.id)
+    ),
   ]);
 
   const groups = new Map<string, Offer[]>();
@@ -45,6 +56,8 @@ export async function OffersBoard({
     const latestB = Math.max(...groups.get(b)!.map((o) => new Date(o.created_at).getTime()));
     return latestB - latestA;
   });
+
+  const revalidatePaths = [basePath];
 
   return (
     <div className="p-8">
@@ -76,9 +89,14 @@ export async function OffersBoard({
 
                 <ul className="flex flex-col gap-2">
                   {groupOffers.map((offer) => (
-                    <li
+                    <OfferDetailModal
                       key={offer.id}
-                      className="flex items-center justify-between gap-3 rounded border border-border-hairline bg-cream px-3 py-2 text-sm"
+                      offer={offer}
+                      contact={contacts.get(offer.contact_id)}
+                      listingType={listingType}
+                      notes={notes.get(offer.id) ?? []}
+                      revalidatePaths={revalidatePaths}
+                      className="flex cursor-pointer items-center justify-between gap-3 rounded border border-border-hairline bg-cream px-3 py-2 text-sm hover:border-amber-500"
                     >
                       <div className="min-w-0">
                         <Link
@@ -87,6 +105,12 @@ export async function OffersBoard({
                         >
                           {contacts.get(offer.contact_id)?.name ?? "Unknown contact"}
                         </Link>
+                        {offer.additional_contacts.length > 0 && (
+                          <span className="text-xs text-ink-muted">
+                            {" "}
+                            + {offer.additional_contacts.map((c) => c.name).join(", ")}
+                          </span>
+                        )}
                         <p className="text-xs text-ink-muted">
                           {formatDateTime(offer.created_at)}
                           {offer.received_via ? ` · ${titleCase(offer.received_via)}` : ""}
@@ -94,14 +118,16 @@ export async function OffersBoard({
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         {offer.amount != null && (
-                          <span className="font-medium text-amber-600">{formatMoney(offer.amount)}</span>
+                          <span className="font-medium text-amber-600">
+                            {formatMoney(offer.amount)}
+                          </span>
                         )}
                         <span className="text-xs uppercase tracking-wide text-ink-faint">
                           {offer.type === "offer" ? firmLabel : noteLabel}
                         </span>
                         <Pill tone={offerStatusTone(offer.status)} label={titleCase(offer.status)} />
                       </div>
-                    </li>
+                    </OfferDetailModal>
                   ))}
                 </ul>
               </section>

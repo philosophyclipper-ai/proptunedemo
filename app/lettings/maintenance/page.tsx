@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { getAllProperties, getMaintenanceIssues } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
+import { resolveNotesByEntity } from "@/lib/ui/resolve-notes";
 import { formatDate, titleCase } from "@/lib/ui/format";
 import { Pill } from "@/components/pill";
 import { urgencyTone } from "@/lib/ui/status-tone";
+import { MaintenanceDetailModal } from "@/components/maintenance-detail-modal";
 
 const COLUMNS = [
   { status: "reported", label: "Reported" },
   { status: "in_progress", label: "In Progress" },
   { status: "resolved", label: "Resolved" },
 ] as const;
+
+const REVALIDATE_PATHS = ["/lettings/maintenance"];
 
 export default async function LettingsMaintenancePage() {
   const [{ maintenance_issues: allIssues }, properties] = await Promise.all([
@@ -23,7 +27,13 @@ export default async function LettingsMaintenancePage() {
   const issues = allIssues.filter(
     (i) => i.property_ref && propertyByRef.get(i.property_ref)?.listing_type === "lettings"
   );
-  const contacts = await resolveContacts(issues.map((i) => i.contact_id));
+  const [contacts, notes] = await Promise.all([
+    resolveContacts(issues.map((i) => i.contact_id)),
+    resolveNotesByEntity(
+      "maintenance_issue",
+      issues.map((i) => i.id)
+    ),
+  ]);
 
   return (
     <div className="p-8">
@@ -51,9 +61,11 @@ export default async function LettingsMaintenancePage() {
                   {columnIssues.map((issue) => {
                     const property = issue.property_ref ? propertyByRef.get(issue.property_ref) : null;
                     return (
-                      <li
+                      <MaintenanceDetailModal
                         key={issue.id}
-                        className="rounded-lg border border-border-hairline bg-paper p-3 text-sm"
+                        issue={issue}
+                        notes={notes.get(issue.id) ?? []}
+                        revalidatePaths={REVALIDATE_PATHS}
                       >
                         <div className="mb-1 flex items-start justify-between gap-2">
                           {issue.property_ref ? (
@@ -77,7 +89,7 @@ export default async function LettingsMaintenancePage() {
                             : ""}
                           {formatDate(issue.created_at)}
                         </p>
-                      </li>
+                      </MaintenanceDetailModal>
                     );
                   })}
                 </ul>

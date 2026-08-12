@@ -9,6 +9,8 @@ import { formatDateTime, formatMoney, titleCase } from "@/lib/ui/format";
 import { Modal } from "@/components/modal";
 import { AddViewingForm } from "@/components/forms/add-viewing-form";
 import { AddOfferForm } from "@/components/forms/add-offer-form";
+import { ViewingDetailModal } from "@/components/viewing-detail-modal";
+import { OfferDetailModal } from "@/components/offer-detail-modal";
 
 type Props = {
   propertyRef: string;
@@ -19,6 +21,7 @@ type Props = {
   notes: Note[];
   contacts: Record<string, Contact>;
   feedback: Record<string, Note[]>;
+  offerNotes: Record<string, Note[]>;
 };
 
 const addButtonClass =
@@ -33,6 +36,7 @@ export function PropertyTabs({
   notes,
   contacts,
   feedback,
+  offerNotes,
 }: Props) {
   const offersTabLabel = listingType === "lettings" ? "Applications" : "Offers & Notes of Interest";
   const noteLabel = listingType === "lettings" ? "Enquiry" : "Note of Interest";
@@ -47,6 +51,8 @@ export function PropertyTabs({
     [offersTabLabel]: offers.length,
     Notes: notes.length,
   };
+
+  const revalidatePaths = [`/properties/${propertyRef}`];
 
   return (
     <div>
@@ -77,6 +83,7 @@ export function PropertyTabs({
             viewings={viewings}
             contacts={contacts}
             feedback={feedback}
+            revalidatePaths={revalidatePaths}
           />
         )}
         {active === offersTabLabel && (
@@ -85,8 +92,10 @@ export function PropertyTabs({
             listingType={listingType}
             offers={offers}
             contacts={contacts}
+            offerNotes={offerNotes}
             noteLabel={noteLabel}
             firmLabel={firmLabel}
+            revalidatePaths={revalidatePaths}
           />
         )}
         {active === "Notes" && <NotesTab notes={notes} />}
@@ -116,6 +125,7 @@ function ViewingsTab({
   viewings,
   contacts,
   feedback,
+  revalidatePaths,
 }: {
   propertyRef: string;
   listingType: "sales" | "lettings";
@@ -123,6 +133,7 @@ function ViewingsTab({
   viewings: Viewing[];
   contacts: Record<string, Contact>;
   feedback: Record<string, Note[]>;
+  revalidatePaths: string[];
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -153,10 +164,17 @@ function ViewingsTab({
           {viewings.map((v) => {
             const viewingFeedback = feedback[v.id] ?? [];
             return (
-              <li key={v.id} className="rounded border border-border-hairline bg-cream p-3">
+              <ViewingDetailModal
+                key={v.id}
+                viewing={v}
+                contact={contacts[v.contact_id]}
+                notes={viewingFeedback}
+                revalidatePaths={revalidatePaths}
+              >
                 <div className="flex items-center justify-between">
                   <Link
                     href={`/contacts/${v.contact_id}`}
+                    onClick={(e) => e.stopPropagation()}
                     className="font-medium text-navy-950 hover:underline"
                   >
                     {contacts[v.contact_id]?.name ?? "Unknown contact"}
@@ -199,7 +217,7 @@ function ViewingsTab({
                     ))}
                   </div>
                 )}
-              </li>
+              </ViewingDetailModal>
             );
           })}
         </ul>
@@ -213,15 +231,19 @@ function OffersTab({
   listingType,
   offers,
   contacts,
+  offerNotes,
   noteLabel,
   firmLabel,
+  revalidatePaths,
 }: {
   propertyRef: string;
   listingType: "sales" | "lettings";
   offers: Offer[];
   contacts: Record<string, Contact>;
+  offerNotes: Record<string, Note[]>;
   noteLabel: string;
   firmLabel: string;
+  revalidatePaths: string[];
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -245,10 +267,18 @@ function OffersTab({
       ) : (
         <ul className="flex flex-col gap-2">
           {offers.map((o) => (
-            <li key={o.id} className="rounded border border-border-hairline bg-cream p-3">
+            <OfferDetailModal
+              key={o.id}
+              offer={o}
+              contact={contacts[o.contact_id]}
+              listingType={listingType}
+              notes={offerNotes[o.id] ?? []}
+              revalidatePaths={revalidatePaths}
+            >
               <div className="flex items-center justify-between gap-2">
                 <Link
                   href={`/contacts/${o.contact_id}`}
+                  onClick={(e) => e.stopPropagation()}
                   className="font-medium text-navy-950 hover:underline"
                 >
                   {contacts[o.contact_id]?.name ?? "Unknown contact"}
@@ -260,6 +290,11 @@ function OffersTab({
                   <Pill tone={offerStatusTone(o.status)} label={titleCase(o.status)} />
                 </div>
               </div>
+              {o.additional_contacts.length > 0 && (
+                <p className="mt-1 text-xs text-ink-muted">
+                  + {o.additional_contacts.map((c) => c.name).join(", ")}
+                </p>
+              )}
               {o.amount != null && (
                 <p className="mt-1 text-sm font-medium text-amber-600">{formatMoney(o.amount)}</p>
               )}
@@ -271,7 +306,7 @@ function OffersTab({
                     : ""}
                 </p>
               )}
-            </li>
+            </OfferDetailModal>
           ))}
         </ul>
       )}

@@ -66,16 +66,21 @@ PATCH  /valuations/:id
 ```
 GET    /viewings?phone=&property_ref=&from=&to=
 POST   /viewings
-PATCH  /viewings/:id               confirm | cancel | reschedule
+PATCH  /viewings/:id               confirm | cancel | reschedule, OR direct field edit — UI only
 POST   /viewings/:id/feedback      writes a note against the viewing
 ```
 
 `POST /viewings` branches on `viewing_conducted_by`:
 vendor → `requested` + `proposed_times` + task; agent-led → calendar event + `confirmed`.
 
+`PATCH /viewings/:id` has two shapes: send `action` (confirm/cancel/reschedule) for the
+voice-tool contract, or omit it and set `status`/`scheduled_at`/`proposed_times`/
+`mortgage_status`/`buyer_property_status` directly — UI editing only, never a voice tool.
+
 ## Offers and notes of interest
 
-One table, one set of endpoints. `type` distinguishes them.
+One table, one set of endpoints. `type` distinguishes them. A couple or multiple
+applicants on one offer are additional contacts, not a second offer row.
 
 ```
 GET    /offers?property_ref=&phone=&type=
@@ -84,6 +89,7 @@ PATCH  /offers/:id                 including note_of_interest → offer upgrade
 POST   /offers/:id/accept
 POST   /offers/:id/reject
 POST   /offers/:id/counter
+POST   /offers/:id/contacts        UI only — attach an additional contact
 ```
 
 ```json

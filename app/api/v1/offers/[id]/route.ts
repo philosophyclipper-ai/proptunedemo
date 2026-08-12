@@ -37,7 +37,7 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     .from("offers")
     .update(updates)
     .eq("id", id)
-    .select("*, properties(ref)")
+    .select("*, properties(ref), offer_contacts(contacts(id,name,phone_primary))")
     .single();
 
   if (error) throw new ApiError("validation_failed", error.message);

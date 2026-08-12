@@ -16,6 +16,14 @@ function photoUrls(row: Row): string[] {
   return [...embedded].sort((a, b) => a.sort_order - b.sort_order).map((p) => p.url);
 }
 
+function additionalContacts(row: Row) {
+  const embedded = row.offer_contacts as
+    | { contacts: { id: string; name: string; phone_primary: string } | null }[]
+    | undefined;
+  if (!embedded) return [];
+  return embedded.map((oc) => oc.contacts).filter((c): c is NonNullable<typeof c> => c != null);
+}
+
 export function toContact(row: Row) {
   return {
     id: row.id,
@@ -98,6 +106,7 @@ export function toOffer(row: Row) {
     id: row.id,
     property_ref: propertyRef(row),
     contact_id: row.contact_id,
+    additional_contacts: additionalContacts(row),
     type: row.type,
     amount: row.amount,
     status: row.status,

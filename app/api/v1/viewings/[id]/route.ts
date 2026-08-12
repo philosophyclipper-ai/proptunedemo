@@ -5,31 +5,49 @@ import { ApiError } from "@/lib/api/errors";
 import { toViewing } from "@/lib/api/serializers";
 
 const ACTIONS = ["confirm", "cancel", "reschedule"] as const;
+const DIRECT_FIELDS = [
+  "status",
+  "scheduled_at",
+  "proposed_times",
+  "mortgage_status",
+  "buyer_property_status",
+] as const;
 
 export const PATCH = withErrorHandling(async (request, { params }) => {
   const { id } = await params;
   const { supabase, agencyId } = await requireApiContext(request);
   const body = await request.json();
 
-  if (!ACTIONS.includes(body.action)) {
-    throw new ApiError("validation_failed", "action must be confirm, cancel or reschedule");
-  }
-
   const updates: Record<string, unknown> = {};
-  if (body.action === "confirm") {
-    updates.status = "confirmed";
-    if (body.scheduled_at) updates.scheduled_at = body.scheduled_at;
-  } else if (body.action === "cancel") {
-    updates.status = "cancelled";
-  } else if (body.action === "reschedule") {
-    if (!body.scheduled_at && !body.proposed_times) {
-      throw new ApiError(
-        "validation_failed",
-        "reschedule requires scheduled_at or proposed_times"
-      );
+
+  if (body.action !== undefined) {
+    // find_viewings/cancel_or_reschedule_viewing voice tool shape.
+    if (!ACTIONS.includes(body.action)) {
+      throw new ApiError("validation_failed", "action must be confirm, cancel or reschedule");
     }
-    if (body.scheduled_at) updates.scheduled_at = body.scheduled_at;
-    if (body.proposed_times) updates.proposed_times = body.proposed_times;
+    if (body.action === "confirm") {
+      updates.status = "confirmed";
+      if (body.scheduled_at) updates.scheduled_at = body.scheduled_at;
+    } else if (body.action === "cancel") {
+      updates.status = "cancelled";
+    } else if (body.action === "reschedule") {
+      if (!body.scheduled_at && !body.proposed_times) {
+        throw new ApiError(
+          "validation_failed",
+          "reschedule requires scheduled_at or proposed_times"
+        );
+      }
+      if (body.scheduled_at) updates.scheduled_at = body.scheduled_at;
+      if (body.proposed_times) updates.proposed_times = body.proposed_times;
+    }
+  } else {
+    // UI edit — set fields directly, no action semantics required.
+    for (const field of DIRECT_FIELDS) {
+      if (body[field] !== undefined) updates[field] = body[field];
+    }
+    if (Object.keys(updates).length === 0) {
+      throw new ApiError("validation_failed", "No editable fields were provided");
+    }
   }
 
   const { data, error } = await supabase

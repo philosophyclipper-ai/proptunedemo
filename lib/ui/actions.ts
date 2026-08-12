@@ -269,3 +269,172 @@ export async function createContactAction(
     return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
   }
 }
+
+function revalidateAll(paths: string[]) {
+  for (const path of paths) revalidatePath(path);
+}
+
+// Full contact edit (contact detail page) — includes roles. The "quick
+// edit" embedded in viewing/offer modals reuses this same action but omits
+// the roles_editable marker, so roles are left untouched there.
+export async function updateContactAction(
+  contactId: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const payload: Record<string, unknown> = {
+      name: str(formData, "name"),
+      phone_primary: str(formData, "phone_primary"),
+      phone_secondary: str(formData, "phone_secondary") ?? null,
+      email: str(formData, "email") ?? null,
+      company: str(formData, "company") ?? null,
+    };
+    if (formData.has("roles_editable")) {
+      payload.roles = formData.getAll("roles").filter((r): r is string => typeof r === "string");
+    }
+
+    const result = await apiPatch<Contact>(`/api/v1/contacts/${contactId}`, payload);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+// Generic note-adding, shared by viewing/offer/maintenance/contact detail
+// views — all just POST /notes against whichever entity_type/entity_id.
+export async function addNoteAction(
+  entityType: string,
+  entityId: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const body = str(formData, "body");
+    if (!body) throw new Error("Note body is required");
+
+    const result = await apiPost("/api/v1/notes", {
+      entity_type: entityType,
+      entity_id: entityId,
+      author_type: "user",
+      body,
+    });
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function updateViewingAction(
+  viewingId: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const scheduledAt = str(formData, "scheduled_at");
+    const payload: Record<string, unknown> = {
+      status: str(formData, "status"),
+    };
+    if (scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
+
+    const result = await apiPatch(`/api/v1/viewings/${viewingId}`, payload);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function updateOfferAction(
+  offerId: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const previousAmount = num(formData, "previous_amount");
+    const amount = num(formData, "amount");
+
+    const payload: Record<string, unknown> = { status: str(formData, "status") };
+    if (amount !== undefined) payload.amount = amount;
+
+    const result = await apiPatch(`/api/v1/offers/${offerId}`, payload);
+    if (!result.ok) throw new Error(result.error);
+
+    // Leave a visible trail of the increase rather than silently
+    // overwriting the figure — notes are how this CRM records history.
+    if (amount !== undefined && previousAmount !== undefined && amount > previousAmount) {
+      const gbp = new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: "GBP",
+        maximumFractionDigits: 0,
+      });
+      await apiPost("/api/v1/notes", {
+        entity_type: "offer",
+        entity_id: offerId,
+        author_type: "user",
+        body: `Increased from ${gbp.format(previousAmount)} to ${gbp.format(amount)}.`,
+      });
+    }
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function addOfferContactAction(
+  offerId: string,
+  roles: string[],
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const contactId = await resolveContact(formData, "contact", roles);
+    if (!contactId) throw new Error("Contact name and phone are required");
+
+    const result = await apiPost(`/api/v1/offers/${offerId}/contacts`, { contact_id: contactId });
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function updateMaintenanceAction(
+  maintenanceId: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const payload = {
+      status: str(formData, "status"),
+      description: str(formData, "description"),
+      urgency: str(formData, "urgency"),
+    };
+
+    const result = await apiPatch(`/api/v1/maintenance/${maintenanceId}`, payload);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}

@@ -15,7 +15,7 @@ export const GET = withErrorHandling(async (request) => {
 
   let query = supabase
     .from("offers")
-    .select("*, properties(ref)")
+    .select("*, properties(ref), offer_contacts(contacts(id,name,phone_primary))")
     .eq("agency_id", agencyId);
 
   if (propertyRef) {
