@@ -155,7 +155,11 @@ export async function createViewingAction(
       (t): t is string => Boolean(t)
     );
 
-    const payload: Record<string, unknown> = { property_ref: ref, contact_id: contactId };
+    const payload: Record<string, unknown> = {
+      property_ref: ref,
+      contact_id: contactId,
+      status: formData.get("confirmed") === "on" ? "confirmed" : "requested",
+    };
     if (scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
     if (proposed.length > 0) {
       payload.proposed_times = proposed.map((t) => new Date(t).toISOString());

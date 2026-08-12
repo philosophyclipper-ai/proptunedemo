@@ -49,6 +49,12 @@ export const POST = withErrorHandling(async (request) => {
   const property = await getPropertyByRef(supabase, agencyId, body.property_ref);
   await requireContactById(supabase, agencyId, body.contact_id);
 
+  // Voice/n8n bookings never send this — the vendor-led/agency-led split
+  // above decides status for them. The CRM UI sends it explicitly so a
+  // staff-entered viewing can start unconfirmed regardless of who leads it.
+  const explicitStatus =
+    body.status === "confirmed" || body.status === "requested" ? body.status : undefined;
+
   const { status, body: responseBody } = await withIdempotency(
     supabase,
     agencyId,
@@ -71,7 +77,7 @@ export const POST = withErrorHandling(async (request) => {
             agency_id: agencyId,
             property_id: property.id,
             contact_id: body.contact_id,
-            status: "requested",
+            status: explicitStatus ?? "requested",
             proposed_times: body.proposed_times,
             mortgage_status: body.mortgage_status ?? null,
             buyer_property_status: body.buyer_property_status ?? null,
@@ -102,15 +108,17 @@ export const POST = withErrorHandling(async (request) => {
         );
       }
 
+      const resolvedStatus = explicitStatus ?? "confirmed";
+
       const { data: viewing, error } = await supabase
         .from("viewings")
         .insert({
           agency_id: agencyId,
           property_id: property.id,
           contact_id: body.contact_id,
-          status: "confirmed",
+          status: resolvedStatus,
           scheduled_at: body.scheduled_at,
-          calendar_event_id: `demo-${crypto.randomUUID()}`,
+          calendar_event_id: resolvedStatus === "confirmed" ? `demo-${crypto.randomUUID()}` : null,
           mortgage_status: body.mortgage_status ?? null,
           buyer_property_status: body.buyer_property_status ?? null,
         })

@@ -67,6 +67,14 @@ export function AddViewingForm({
         </Field>
       )}
 
+      <label className="flex items-center gap-2 text-sm text-ink">
+        <input type="checkbox" name="confirmed" className="h-4 w-4" />
+        Confirmed
+      </label>
+      <p className="-mt-2 text-xs text-ink-faint">
+        Leave unchecked to book as requested, pending approval.
+      </p>
+
       {listingType === "sales" && (
         <div className="rounded border border-border-hairline bg-cream p-3">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
