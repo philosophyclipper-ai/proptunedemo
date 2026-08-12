@@ -42,6 +42,9 @@ export function AddViewingForm({
           <input name="contact_phone" required className={inputClass} />
         </Field>
       </div>
+      <Field label="Contact Email (optional)">
+        <input name="contact_email" type="email" className={inputClass} />
+      </Field>
 
       {vendorLed ? (
         <>

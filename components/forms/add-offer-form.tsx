@@ -34,6 +34,9 @@ export function AddOfferForm({
           <input name="contact_phone" required className={inputClass} />
         </Field>
       </div>
+      <Field label="Contact Email (optional)">
+        <input name="contact_email" type="email" className={inputClass} />
+      </Field>
 
       <div className="grid grid-cols-2 gap-3">
         <Field label={isLettings ? "Proposed Rent (£, optional)" : "Amount (£, optional)"}>
@@ -65,6 +68,9 @@ export function AddOfferForm({
             </Field>
             <Field label="Phone">
               <input name="solicitor_phone" className={inputClass} />
+            </Field>
+            <Field label="Email">
+              <input name="solicitor_email" type="email" className={inputClass} />
             </Field>
             <Field label="Company">
               <input name="solicitor_company" className={inputClass} />

@@ -7,9 +7,9 @@ import { baseUrl } from "@/lib/ui/api-client";
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 async function apiWrite<T>(
-  method: "POST" | "PATCH",
+  method: "POST" | "PATCH" | "DELETE",
   path: string,
-  body: unknown
+  body?: unknown
 ): Promise<ApiResult<T>> {
   const res = await fetch(new URL(path, baseUrl()), {
     method,
@@ -18,7 +18,7 @@ async function apiWrite<T>(
       "x-api-key": process.env.API_KEY ?? "",
       "Idempotency-Key": crypto.randomUUID(),
     },
-    body: JSON.stringify(body),
+    body: body !== undefined ? JSON.stringify(body) : undefined,
     cache: "no-store",
   });
 
@@ -38,4 +38,8 @@ export function apiPost<T>(path: string, body: unknown): Promise<ApiResult<T>> {
 
 export function apiPatch<T>(path: string, body: unknown): Promise<ApiResult<T>> {
   return apiWrite<T>("PATCH", path, body);
+}
+
+export function apiDelete<T>(path: string): Promise<ApiResult<T>> {
+  return apiWrite<T>("DELETE", path);
 }

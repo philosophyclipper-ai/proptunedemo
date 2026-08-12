@@ -8,11 +8,13 @@ export function EditListingButton({
   property,
   vendorName,
   vendorPhone,
+  vendorEmail,
   viewingNotes,
 }: {
   property: Property;
   vendorName?: string;
   vendorPhone?: string;
+  vendorEmail?: string;
   viewingNotes?: string | null;
 }) {
   return (
@@ -35,6 +37,7 @@ export function EditListingButton({
           property={property}
           vendorName={vendorName}
           vendorPhone={vendorPhone}
+          vendorEmail={vendorEmail}
           viewingNotes={viewingNotes}
           onSuccess={close}
         />

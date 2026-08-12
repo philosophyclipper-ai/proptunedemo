@@ -47,6 +47,9 @@ export function AddMaintenanceForm({
           <Field label="Phone">
             <input name="contact_phone" className={inputClass} />
           </Field>
+          <Field label="Email">
+            <input name="contact_email" type="email" className={inputClass} />
+          </Field>
         </div>
       </div>
 

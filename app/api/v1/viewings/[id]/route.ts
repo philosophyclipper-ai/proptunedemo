@@ -62,3 +62,38 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
   if (!data) throw new ApiError("not_found", `No viewing with id ${id}`);
   return NextResponse.json(toViewing(data));
 });
+
+export const DELETE = withErrorHandling(async (request, { params }) => {
+  const { id } = await params;
+  const { supabase, agencyId } = await requireApiContext(request);
+
+  const { data: existing } = await supabase
+    .from("viewings")
+    .select("id")
+    .eq("agency_id", agencyId)
+    .eq("id", id)
+    .maybeSingle();
+  if (!existing) throw new ApiError("not_found", `No viewing with id ${id}`);
+
+  await supabase
+    .from("notes")
+    .delete()
+    .eq("agency_id", agencyId)
+    .eq("entity_type", "viewing")
+    .eq("entity_id", id);
+  await supabase
+    .from("tasks")
+    .delete()
+    .eq("agency_id", agencyId)
+    .eq("entity_type", "viewing")
+    .eq("entity_id", id);
+
+  const { error } = await supabase
+    .from("viewings")
+    .delete()
+    .eq("agency_id", agencyId)
+    .eq("id", id);
+  if (error) throw new ApiError("validation_failed", error.message);
+
+  return NextResponse.json({ deleted: true });
+});

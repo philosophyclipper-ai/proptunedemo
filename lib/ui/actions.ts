@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { apiPatch, apiPost } from "@/lib/ui/mutations";
+import { apiDelete, apiPatch, apiPost } from "@/lib/ui/mutations";
 import type { Contact, Property } from "@/lib/ui/types";
 import type { ActionState } from "@/lib/ui/action-state";
 
@@ -32,6 +32,7 @@ async function resolveContact(
   const result = await apiPost<Contact>("/api/v1/contacts", {
     name,
     phone_primary: phone,
+    email: str(formData, `${prefix}_email`),
     company: str(formData, `${prefix}_company`),
     roles,
   });
@@ -347,6 +348,26 @@ export async function updateViewingAction(
     if (scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
 
     const result = await apiPatch(`/api/v1/viewings/${viewingId}`, payload);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+// prevState/formData are unused but required by useActionState's calling convention.
+export async function deleteViewingAction(
+  viewingId: string,
+  revalidatePaths: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prev: ActionState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _formData: FormData
+): Promise<ActionState> {
+  try {
+    const result = await apiDelete(`/api/v1/viewings/${viewingId}`);
     if (!result.ok) throw new Error(result.error);
 
     revalidateAll(revalidatePaths);

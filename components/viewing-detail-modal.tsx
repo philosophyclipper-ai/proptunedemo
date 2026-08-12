@@ -3,6 +3,7 @@
 import { Modal } from "@/components/modal";
 import { QuickEditContactForm } from "@/components/forms/quick-edit-contact-form";
 import { EditViewingFieldsForm } from "@/components/forms/edit-viewing-fields-form";
+import { ViewingQuickActions } from "@/components/forms/viewing-quick-actions";
 import { AddNoteForm } from "@/components/forms/add-note-form";
 import { NotesList } from "@/components/notes-list";
 import type { Contact, Note, Viewing } from "@/lib/ui/types";
@@ -35,8 +36,14 @@ export function ViewingDetailModal({
         </li>
       )}
     >
-      {() => (
+      {(close) => (
         <div className="flex flex-col gap-5">
+          <ViewingQuickActions
+            viewing={viewing}
+            revalidatePaths={revalidatePaths}
+            onDeleted={close}
+          />
+
           {contact && (
             <section>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">

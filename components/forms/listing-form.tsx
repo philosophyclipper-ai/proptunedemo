@@ -37,6 +37,7 @@ type Props =
       property: Property;
       vendorName?: string;
       vendorPhone?: string;
+      vendorEmail?: string;
       viewingNotes?: string | null;
       onSuccess: () => void;
     };
@@ -225,6 +226,14 @@ export function ListingForm(props: Props) {
             <input
               name="vendor_phone"
               defaultValue={props.mode === "edit" ? props.vendorPhone : undefined}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Email">
+            <input
+              name="vendor_email"
+              type="email"
+              defaultValue={props.mode === "edit" ? props.vendorEmail : undefined}
               className={inputClass}
             />
           </Field>

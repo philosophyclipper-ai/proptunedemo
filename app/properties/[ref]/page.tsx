@@ -91,6 +91,7 @@ export default async function PropertyDetailPage({
             property={property}
             vendorName={vendorContact?.name}
             vendorPhone={vendorContact?.phone_primary}
+            vendorEmail={vendorContact?.email ?? undefined}
             viewingNotes={viewingArrangement.viewing_notes}
           />
         </div>
