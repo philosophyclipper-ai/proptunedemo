@@ -154,7 +154,6 @@ export default async function PropertyDetailPage({
                 }
               />
               <Attribute label="Type" value={titleCase(property.property_type)} />
-              {!isLettings && <Attribute label="Tenure" value={titleCase(property.tenure)} />}
               <Attribute label="Council Tax Band" value={property.council_tax_band ?? "—"} />
               <Attribute label="EPC Rating" value={property.epc_rating ?? "—"} />
               {!isLettings && (

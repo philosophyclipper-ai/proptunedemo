@@ -70,7 +70,6 @@ export async function createListing(
     };
 
     if (listingType === "sales") {
-      payload.tenure = str(formData, "tenure");
       payload.price_qualifier = str(formData, "price_qualifier");
       payload.asking_price = num(formData, "asking_price");
     } else {
@@ -117,7 +116,6 @@ export async function updateListing(
     if (vendorContactId) payload.vendor_contact_id = vendorContactId;
 
     if (listingType === "sales") {
-      payload.tenure = str(formData, "tenure") ?? null;
       payload.price_qualifier = str(formData, "price_qualifier") ?? null;
       payload.asking_price = num(formData, "asking_price") ?? null;
       payload.closing_date = str(formData, "closing_date") ?? null;

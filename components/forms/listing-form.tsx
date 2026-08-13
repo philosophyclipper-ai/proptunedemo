@@ -5,7 +5,6 @@ import { createListing, updateListing } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
 import type { Property } from "@/lib/ui/types";
 
-const TENURES = ["feuhold", "leasehold", "freehold"];
 const PRICE_QUALIFIERS = [
   { value: "offers_over", label: "Offers Over" },
   { value: "fixed_price", label: "Fixed Price" },
@@ -90,17 +89,6 @@ export function ListingForm(props: Props) {
             className={inputClass}
           />
         </Field>
-        {!isLettings && (
-          <Field label="Tenure">
-            <select name="tenure" defaultValue={property?.tenure ?? "feuhold"} className={inputClass}>
-              {TENURES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
-        )}
         <Field label="Council Tax Band">
           <input
             name="council_tax_band"
