@@ -64,12 +64,9 @@ export const POST = withErrorHandling(async (request) => {
       const vendorLed = property.viewing_conducted_by === "vendor";
 
       if (vendorLed) {
-        if (!body.proposed_times || body.proposed_times.length === 0) {
-          throw new ApiError(
-            "validation_failed",
-            "proposed_times is required when the vendor holds the calendar"
-          );
-        }
+        // A time is no longer required up front — a viewing with no
+        // proposed times yet is "incomplete" rather than requested.
+        const hasProposedTimes = Boolean(body.proposed_times && body.proposed_times.length > 0);
 
         const { data: viewing, error } = await supabase
           .from("viewings")
@@ -77,8 +74,8 @@ export const POST = withErrorHandling(async (request) => {
             agency_id: agencyId,
             property_id: property.id,
             contact_id: body.contact_id,
-            status: explicitStatus ?? "requested",
-            proposed_times: body.proposed_times,
+            status: hasProposedTimes ? (explicitStatus ?? "requested") : "incomplete",
+            proposed_times: hasProposedTimes ? body.proposed_times : null,
             mortgage_status: body.mortgage_status ?? null,
             buyer_property_status: body.buyer_property_status ?? null,
           })
@@ -87,13 +84,15 @@ export const POST = withErrorHandling(async (request) => {
 
         if (error) throw new ApiError("validation_failed", error.message);
 
-        await supabase.from("tasks").insert({
-          agency_id: agencyId,
-          entity_type: "viewing",
-          entity_id: viewing.id,
-          title: `Confirm viewing time with vendor for ${property.ref}`,
-          body: `Proposed times: ${body.proposed_times.join(", ")}`,
-        });
+        if (hasProposedTimes) {
+          await supabase.from("tasks").insert({
+            agency_id: agencyId,
+            entity_type: "viewing",
+            entity_id: viewing.id,
+            title: `Confirm viewing time with vendor for ${property.ref}`,
+            body: `Proposed times: ${body.proposed_times.join(", ")}`,
+          });
+        }
 
         return {
           status: 201,
@@ -101,14 +100,10 @@ export const POST = withErrorHandling(async (request) => {
         };
       }
 
-      if (!body.scheduled_at) {
-        throw new ApiError(
-          "validation_failed",
-          "scheduled_at is required when the agency holds the calendar"
-        );
-      }
-
-      const resolvedStatus = explicitStatus ?? "confirmed";
+      // Same relaxation for the agency-led side: no scheduled_at means
+      // incomplete rather than an auto-confirmed slot.
+      const hasScheduledAt = Boolean(body.scheduled_at);
+      const resolvedStatus = hasScheduledAt ? (explicitStatus ?? "confirmed") : "incomplete";
 
       const { data: viewing, error } = await supabase
         .from("viewings")
@@ -117,7 +112,7 @@ export const POST = withErrorHandling(async (request) => {
           property_id: property.id,
           contact_id: body.contact_id,
           status: resolvedStatus,
-          scheduled_at: body.scheduled_at,
+          scheduled_at: hasScheduledAt ? body.scheduled_at : null,
           calendar_event_id: resolvedStatus === "confirmed" ? `demo-${crypto.randomUUID()}` : null,
           mortgage_status: body.mortgage_status ?? null,
           buyer_property_status: body.buyer_property_status ?? null,

@@ -21,6 +21,8 @@ export function viewingStatusTone(status: string): Tone {
       return "green";
     case "requested":
       return "amber";
+    case "incomplete":
+      return "red";
     case "completed":
       return "navy";
     default:

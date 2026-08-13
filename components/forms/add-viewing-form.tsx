@@ -50,11 +50,11 @@ export function AddViewingForm({
         <>
           <p className="text-xs text-ink-faint">
             This property&apos;s calendar is held by the vendor/landlord — propose times rather
-            than booking one directly.
+            than booking one directly. Leave blank to log this as incomplete and add times later.
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Proposed Time 1">
-              <input name="proposed_time_1" type="datetime-local" required className={inputClass} />
+            <Field label="Proposed Time 1 (optional)">
+              <input name="proposed_time_1" type="datetime-local" className={inputClass} />
             </Field>
             <Field label="Proposed Time 2 (optional)">
               <input name="proposed_time_2" type="datetime-local" className={inputClass} />
@@ -62,8 +62,11 @@ export function AddViewingForm({
           </div>
         </>
       ) : (
-        <Field label="Scheduled Time">
-          <input name="scheduled_at" type="datetime-local" required className={inputClass} />
+        <Field label="Scheduled Time (optional)">
+          <input name="scheduled_at" type="datetime-local" className={inputClass} />
+          <p className="mt-1 text-xs text-ink-faint">
+            Leave blank to log this as incomplete and add a time later.
+          </p>
         </Field>
       )}
 
@@ -72,7 +75,8 @@ export function AddViewingForm({
         Confirmed
       </label>
       <p className="-mt-2 text-xs text-ink-faint">
-        Leave unchecked to book as requested, pending approval.
+        Leave unchecked to book as requested, pending approval. A time is required before a
+        viewing can be requested or confirmed — without one it&apos;s logged as incomplete.
       </p>
 
       {listingType === "sales" && (

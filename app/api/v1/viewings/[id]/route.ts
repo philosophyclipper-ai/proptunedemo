@@ -50,6 +50,23 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     }
   }
 
+  // A viewing can't be requested/confirmed without a time on file — if this
+  // update would leave it (still) timeless, tag it incomplete instead.
+  if (updates.status === "requested" || updates.status === "confirmed") {
+    const { data: current } = await supabase
+      .from("viewings")
+      .select("scheduled_at, proposed_times")
+      .eq("agency_id", agencyId)
+      .eq("id", id)
+      .maybeSingle();
+    const scheduledAt =
+      updates.scheduled_at !== undefined ? updates.scheduled_at : current?.scheduled_at;
+    const proposedTimes =
+      updates.proposed_times !== undefined ? updates.proposed_times : current?.proposed_times;
+    const hasTime = Boolean(scheduledAt) || (Array.isArray(proposedTimes) && proposedTimes.length > 0);
+    if (!hasTime) updates.status = "incomplete";
+  }
+
   const { data, error } = await supabase
     .from("viewings")
     .update(updates)

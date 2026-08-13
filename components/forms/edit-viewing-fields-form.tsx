@@ -21,10 +21,18 @@ export function EditViewingFieldsForm({
 }) {
   const action = updateViewingAction.bind(null, viewing.id, revalidatePaths);
   const { state, formAction, pending } = useMutationForm(action);
-  const isActive = viewing.status === "requested" || viewing.status === "confirmed";
+  const isActive =
+    viewing.status === "requested" ||
+    viewing.status === "confirmed" ||
+    viewing.status === "incomplete";
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
+      {viewing.status === "incomplete" && (
+        <p className="text-xs text-ink-faint">
+          No viewing time on file yet — add one below to move this out of incomplete.
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-3 items-end">
         {isActive && (
           <>

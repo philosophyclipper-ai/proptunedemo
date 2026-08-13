@@ -48,6 +48,7 @@ export async function ViewingsWeekView({
     (v) => v.scheduled_at && new Date(v.scheduled_at) >= monday && new Date(v.scheduled_at) < weekEnd
   );
   const awaitingViewings = viewings.filter((v) => v.status === "requested");
+  const incompleteViewings = viewings.filter((v) => v.status === "incomplete");
 
   const prevWeek = toDateParam(addDays(monday, -7));
   const nextWeek = toDateParam(addDays(monday, 7));
@@ -128,6 +129,38 @@ export async function ViewingsWeekView({
           );
         })}
       </div>
+
+      {incompleteViewings.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-3 font-heading text-lg font-semibold text-navy-950">
+            Incomplete — Needs a Time
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {incompleteViewings.map((v) => (
+              <ViewingDetailModal
+                key={v.id}
+                viewing={v}
+                contact={contacts.get(v.contact_id)}
+                notes={notes.get(v.id) ?? []}
+                revalidatePaths={revalidatePaths}
+                className="cursor-pointer rounded-lg border border-border-hairline bg-paper p-3 text-sm hover:border-amber-500"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-navy-950">
+                    {v.property_ref && (
+                      <Link href={`/properties/${v.property_ref}`} className="hover:underline">
+                        {propertyByRef.get(v.property_ref)?.address_line1 ?? v.property_ref}
+                      </Link>
+                    )}{" "}
+                    — {contacts.get(v.contact_id)?.name ?? "Unknown contact"}
+                  </span>
+                  <Pill tone="red" label="Incomplete" />
+                </div>
+              </ViewingDetailModal>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {awaitingViewings.length > 0 && (
         <section className="mt-8">

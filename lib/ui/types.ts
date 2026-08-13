@@ -73,7 +73,7 @@ export type Viewing = {
   id: string;
   property_ref: string | null;
   contact_id: string;
-  status: "requested" | "confirmed" | "cancelled" | "completed";
+  status: "incomplete" | "requested" | "confirmed" | "cancelled" | "completed";
   proposed_times: string[] | null;
   scheduled_at: string | null;
   calendar_event_id: string | null;
