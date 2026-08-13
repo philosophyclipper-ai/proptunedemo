@@ -112,6 +112,8 @@ export const POST = withErrorHandling(async (request) => {
         viewing_conducted_by: body.viewing_conducted_by ?? "agency_staff",
         viewing_calendar_id: body.viewing_calendar_id ?? null,
         viewing_notes: body.viewing_notes ?? null,
+        went_live_at: body.went_live_at ?? new Date().toISOString(),
+        negotiator_id: body.negotiator_id ?? null,
       };
 
       let ref: string = body.ref ?? generatePropertyRef(body.postcode);

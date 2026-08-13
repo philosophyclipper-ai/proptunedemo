@@ -32,6 +32,8 @@ export type Property = {
   vendor_contact_id: string | null;
   viewing_conducted_by: "vendor" | "viewing_agent" | "agency_staff";
   closing_date: string | null;
+  went_live_at: string | null;
+  negotiator_id: string | null;
   photos: string[];
   created_at: string;
   updated_at: string;
@@ -106,6 +108,13 @@ export type MaintenanceIssue = {
   urgency: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
 };
 
 export type Note = {

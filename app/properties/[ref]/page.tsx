@@ -5,6 +5,7 @@ import {
   getOffers,
   getProperty,
   getPropertyNotes,
+  getUsers,
   getViewingArrangement,
   getViewings,
 } from "@/lib/ui/api-client";
@@ -34,7 +35,7 @@ export default async function PropertyDetailPage({
   const property = await getProperty(ref).catch(() => null);
   if (!property) notFound();
 
-  const [viewingArrangement, notesResult, viewingsResult, offersResult, vendorContact] =
+  const [viewingArrangement, notesResult, viewingsResult, offersResult, vendorContact, { users }] =
     await Promise.all([
       getViewingArrangement(ref),
       getPropertyNotes(ref),
@@ -43,7 +44,9 @@ export default async function PropertyDetailPage({
       property.vendor_contact_id
         ? getContact(property.vendor_contact_id).catch(() => null)
         : Promise.resolve(null),
+      getUsers(),
     ]);
+  const negotiator = users.find((u) => u.id === property.negotiator_id);
 
   const [contactsMap, feedbackMap, offerNotesMap] = await Promise.all([
     resolveContacts([
@@ -93,6 +96,7 @@ export default async function PropertyDetailPage({
             vendorPhone={vendorContact?.phone_primary}
             vendorEmail={vendorContact?.email ?? undefined}
             viewingNotes={viewingArrangement.viewing_notes}
+            users={users}
           />
         </div>
       </header>
@@ -159,6 +163,8 @@ export default async function PropertyDetailPage({
               {!isLettings && (
                 <Attribute label="Closing Date" value={formatDate(property.closing_date)} />
               )}
+              <Attribute label="Negotiator" value={negotiator?.name ?? "—"} />
+              <Attribute label="Went Live" value={formatDate(property.went_live_at)} />
             </dl>
           </section>
 

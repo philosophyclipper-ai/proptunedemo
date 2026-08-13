@@ -43,6 +43,8 @@ const EDITABLE_FIELDS = [
   "viewing_calendar_id",
   "viewing_notes",
   "closing_date",
+  "went_live_at",
+  "negotiator_id",
 ] as const;
 
 // UI only — not a voice tool. closing_date in particular is set by humans

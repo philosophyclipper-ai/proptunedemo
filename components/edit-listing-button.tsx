@@ -2,7 +2,7 @@
 
 import { Modal } from "@/components/modal";
 import { ListingForm } from "@/components/forms/listing-form";
-import type { Property } from "@/lib/ui/types";
+import type { Property, User } from "@/lib/ui/types";
 
 export function EditListingButton({
   property,
@@ -10,12 +10,14 @@ export function EditListingButton({
   vendorPhone,
   vendorEmail,
   viewingNotes,
+  users,
 }: {
   property: Property;
   vendorName?: string;
   vendorPhone?: string;
   vendorEmail?: string;
   viewingNotes?: string | null;
+  users: User[];
 }) {
   return (
     <Modal
@@ -39,6 +41,7 @@ export function EditListingButton({
           vendorPhone={vendorPhone}
           vendorEmail={vendorEmail}
           viewingNotes={viewingNotes}
+          users={users}
           onSuccess={close}
         />
       )}

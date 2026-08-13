@@ -67,6 +67,10 @@ export async function createListing(
       viewing_conducted_by: str(formData, "viewing_conducted_by"),
       viewing_notes: str(formData, "viewing_notes"),
       vendor_contact_id: vendorContactId ?? undefined,
+      negotiator_id: str(formData, "negotiator_id") ?? null,
+      went_live_at: str(formData, "went_live_at")
+        ? new Date(str(formData, "went_live_at")!).toISOString()
+        : undefined,
     };
 
     if (listingType === "sales") {
@@ -112,6 +116,10 @@ export async function updateListing(
       epc_rating: str(formData, "epc_rating") ?? null,
       viewing_conducted_by: str(formData, "viewing_conducted_by"),
       viewing_notes: str(formData, "viewing_notes") ?? null,
+      negotiator_id: str(formData, "negotiator_id") ?? null,
+      went_live_at: str(formData, "went_live_at")
+        ? new Date(str(formData, "went_live_at")!).toISOString()
+        : null,
     };
     if (vendorContactId) payload.vendor_contact_id = vendorContactId;
 

@@ -3,7 +3,7 @@
 import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { createListing, updateListing } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
-import type { Property } from "@/lib/ui/types";
+import type { Property, User } from "@/lib/ui/types";
 
 const PRICE_QUALIFIERS = [
   { value: "offers_over", label: "Offers Over" },
@@ -29,7 +29,7 @@ const LETTINGS_STATUSES = [
 ] as const;
 
 type Props =
-  | { mode: "create"; listingType: "sales" | "lettings"; onSuccess: () => void }
+  | { mode: "create"; listingType: "sales" | "lettings"; users: User[]; onSuccess: () => void }
   | {
       mode: "edit";
       listingType: "sales" | "lettings";
@@ -38,8 +38,13 @@ type Props =
       vendorPhone?: string;
       vendorEmail?: string;
       viewingNotes?: string | null;
+      users: User[];
       onSuccess: () => void;
     };
+
+function toDateInputValue(iso: string | null | undefined): string {
+  return iso ? iso.slice(0, 10) : "";
+}
 
 export function ListingForm(props: Props) {
   const isLettings = props.listingType === "lettings";
@@ -98,6 +103,32 @@ export function ListingForm(props: Props) {
         </Field>
         <Field label="EPC Rating">
           <input name="epc_rating" defaultValue={property?.epc_rating ?? ""} className={inputClass} />
+        </Field>
+        <Field label="Negotiator">
+          <select
+            name="negotiator_id"
+            defaultValue={property?.negotiator_id ?? props.users[0]?.id ?? ""}
+            className={inputClass}
+          >
+            <option value="">Unassigned</option>
+            {props.users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Went Live">
+          <input
+            name="went_live_at"
+            type="date"
+            defaultValue={
+              props.mode === "edit"
+                ? toDateInputValue(property?.went_live_at)
+                : new Date().toISOString().slice(0, 10)
+            }
+            className={inputClass}
+          />
         </Field>
       </div>
 

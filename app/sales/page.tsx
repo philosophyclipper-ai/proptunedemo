@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getProperties } from "@/lib/ui/api-client";
+import { getProperties, getUsers } from "@/lib/ui/api-client";
 import { PropertyGrid } from "@/components/property-grid";
 import { ListingsFilterForm } from "@/components/listings-filter-form";
 import { AddListingButton } from "@/components/add-listing-button";
@@ -26,12 +26,15 @@ export default async function SalesListingsPage({
   // statuses" and that should stick, not silently re-default.
   const resolvedStatus = params.status ?? DEFAULT_STATUS;
 
-  const { properties, next_cursor } = await getProperties({
-    listing_type: "sales",
-    status: resolvedStatus,
-    q: params.q,
-    cursor: params.cursor,
-  });
+  const [{ properties, next_cursor }, { users }] = await Promise.all([
+    getProperties({
+      listing_type: "sales",
+      status: resolvedStatus,
+      q: params.q,
+      cursor: params.cursor,
+    }),
+    getUsers(),
+  ]);
 
   const nextQuery: Record<string, string> = { status: resolvedStatus };
   if (params.q) nextQuery.q = params.q;
@@ -48,7 +51,7 @@ export default async function SalesListingsPage({
         </div>
         <div className="flex gap-2">
           <AddContactButton section="sales" />
-          <AddListingButton listingType="sales" />
+          <AddListingButton listingType="sales" users={users} />
         </div>
       </header>
 

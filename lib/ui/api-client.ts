@@ -5,6 +5,7 @@ import type {
   Offer,
   Property,
   TimelineEntry,
+  User,
   Valuation,
   Viewing,
   ViewingArrangement,
@@ -117,4 +118,8 @@ export async function getOffers(params: { property_ref?: string } = {}) {
 
 export async function getMaintenanceIssues(params: { property_ref?: string } = {}) {
   return apiGet<{ maintenance_issues: MaintenanceIssue[] }>("/api/v1/maintenance", params);
+}
+
+export async function getUsers() {
+  return apiGet<{ users: User[] }>("/api/v1/users");
 }

@@ -2,8 +2,15 @@
 
 import { Modal } from "@/components/modal";
 import { ListingForm } from "@/components/forms/listing-form";
+import type { User } from "@/lib/ui/types";
 
-export function AddListingButton({ listingType }: { listingType: "sales" | "lettings" }) {
+export function AddListingButton({
+  listingType,
+  users,
+}: {
+  listingType: "sales" | "lettings";
+  users: User[];
+}) {
   return (
     <Modal
       title={listingType === "lettings" ? "Add Lettings Listing" : "Add Sales Listing"}
@@ -17,7 +24,9 @@ export function AddListingButton({ listingType }: { listingType: "sales" | "lett
         </button>
       )}
     >
-      {(close) => <ListingForm mode="create" listingType={listingType} onSuccess={close} />}
+      {(close) => (
+        <ListingForm mode="create" listingType={listingType} users={users} onSuccess={close} />
+      )}
     </Modal>
   );
 }
