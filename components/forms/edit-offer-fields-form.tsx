@@ -7,7 +7,6 @@ import type { Offer } from "@/lib/ui/types";
 
 const STATUSES = [
   { value: "open", label: "Open" },
-  { value: "countered", label: "Countered" },
   { value: "accepted", label: "Accepted" },
   { value: "rejected", label: "Rejected" },
   { value: "withdrawn", label: "Withdrawn" },

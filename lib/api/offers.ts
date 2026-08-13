@@ -18,7 +18,7 @@ export async function requireOfferById(
   if (data.type !== "offer") {
     throw new ApiError(
       "validation_failed",
-      "Accept, reject and counter only apply to offers, not notes of interest"
+      "Accept and reject only apply to offers, not notes of interest"
     );
   }
   return data;

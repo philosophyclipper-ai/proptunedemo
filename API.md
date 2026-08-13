@@ -88,7 +88,6 @@ POST   /offers
 PATCH  /offers/:id                 including note_of_interest → offer upgrade
 POST   /offers/:id/accept
 POST   /offers/:id/reject
-POST   /offers/:id/counter
 POST   /offers/:id/contacts        UI only — attach an additional contact
 ```
 
@@ -105,7 +104,9 @@ POST /offers
 ```
 
 `amount` is null for `note_of_interest` and required for `offer`.
-Accept, reject and counter apply to `offer` only.
+Accept and reject apply to `offer` only. There is no counter-offer status or
+endpoint — that step doesn't exist in the Scottish system; offers stay `open`
+until accepted, rejected or withdrawn.
 
 ## Maintenance
 

@@ -35,7 +35,6 @@ export function offerStatusTone(status: string): Tone {
     case "accepted":
       return "green";
     case "open":
-    case "countered":
       return "amber";
     case "rejected":
       return "red";
