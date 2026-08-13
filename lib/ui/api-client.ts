@@ -22,7 +22,8 @@ export function baseUrl() {
 
 async function apiGet<T>(
   path: string,
-  searchParams?: Record<string, string | undefined>
+  searchParams?: Record<string, string | undefined>,
+  options?: { revalidateSeconds?: number }
 ): Promise<T> {
   const url = new URL(path, baseUrl());
   for (const [key, value] of Object.entries(searchParams ?? {})) {
@@ -31,7 +32,9 @@ async function apiGet<T>(
 
   const res = await fetch(url, {
     headers: { "x-api-key": process.env.API_KEY ?? "" },
-    cache: "no-store",
+    ...(options?.revalidateSeconds
+      ? { next: { revalidate: options.revalidateSeconds } }
+      : { cache: "no-store" }),
   });
 
   if (!res.ok) {
@@ -81,8 +84,33 @@ export async function getNotes(params: { entity_type: string; entity_id: string 
   return apiGet<{ notes: Note[] }>("/api/v1/notes", params);
 }
 
+// Batch variant — one request for every entity on a page (viewings, offers,
+// ...) instead of one per entity. UI-only; voice/n8n never send entity_ids.
+export async function getNotesByEntityIds(
+  entityType: string,
+  entityIds: string[]
+): Promise<Note[]> {
+  if (entityIds.length === 0) return [];
+  const { notes } = await apiGet<{ notes: Note[] }>("/api/v1/notes", {
+    entity_type: entityType,
+    entity_ids: entityIds.join(","),
+  });
+  return notes;
+}
+
 export async function getContact(id: string) {
   return apiGet<Contact>(`/api/v1/contacts/${id}`);
+}
+
+// Batch variant of getContact — one request for every distinct contact on a
+// page instead of one per contact.
+export async function getContactsByIds(ids: string[]): Promise<Contact[]> {
+  if (ids.length === 0) return [];
+  const { contacts } = await apiGet<{ contacts: Contact[]; next_cursor: string | null }>(
+    "/api/v1/contacts",
+    { ids: ids.join(",") }
+  );
+  return contacts;
 }
 
 export async function getContacts(params: { q?: string; cursor?: string } = {}) {
@@ -120,6 +148,8 @@ export async function getMaintenanceIssues(params: { property_ref?: string } = {
   return apiGet<{ maintenance_issues: MaintenanceIssue[] }>("/api/v1/maintenance", params);
 }
 
+// Negotiators change rarely — worth a short cache instead of a fresh round
+// trip on every listings/property page load.
 export async function getUsers() {
-  return apiGet<{ users: User[] }>("/api/v1/users");
+  return apiGet<{ users: User[] }>("/api/v1/users", undefined, { revalidateSeconds: 60 });
 }

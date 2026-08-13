@@ -10,10 +10,14 @@ export const GET = withErrorHandling(async (request) => {
   const { searchParams } = new URL(request.url);
   const entityType = searchParams.get("entity_type");
   const entityId = searchParams.get("entity_id");
+  const entityIds = searchParams.get("entity_ids");
 
   let query = supabase.from("notes").select("*").eq("agency_id", agencyId);
   if (entityType) query = query.eq("entity_type", entityType);
   if (entityId) query = query.eq("entity_id", entityId);
+  // UI-only batch lookup — one query for every viewing/offer/etc on a page
+  // instead of one per entity.
+  if (entityIds) query = query.in("entity_id", entityIds.split(",").filter(Boolean));
 
   const { data, error } = await query.order("created_at", { ascending: false });
   if (error) throw new ApiError("validation_failed", error.message);

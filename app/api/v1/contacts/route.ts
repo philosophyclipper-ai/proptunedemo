@@ -11,12 +11,23 @@ export const GET = withErrorHandling(async (request) => {
   const { searchParams } = new URL(request.url);
   const phone = searchParams.get("phone");
   const q = searchParams.get("q");
+  const ids = searchParams.get("ids");
   const cursor = searchParams.get("cursor");
 
   let query = supabase
     .from("contacts")
     .select("*")
     .eq("agency_id", agencyId);
+
+  // UI-only batch lookup — resolves the distinct contacts behind a page's
+  // worth of viewings/offers in one query instead of one per contact.
+  // Bypasses pagination entirely since it's a bounded, explicit id list.
+  if (ids) {
+    const idList = ids.split(",").filter(Boolean);
+    const { data, error } = await query.in("id", idList);
+    if (error) throw new ApiError("validation_failed", error.message);
+    return NextResponse.json({ contacts: (data ?? []).map(toContact), next_cursor: null });
+  }
 
   if (phone) {
     query = query.or(`phone_primary.eq.${phone},phone_secondary.eq.${phone}`);
