@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Sora, Inter } from "next/font/google";
 import { SidebarNav } from "@/components/sidebar-nav";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const sora = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
-  style: ["normal", "italic"],
 });
 
 const inter = Inter({
@@ -24,7 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
+      className={`${sora.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-cream text-ink">
         <div className="flex min-h-screen">
