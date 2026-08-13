@@ -165,7 +165,7 @@ export async function ViewingsWeekView({
       {awaitingViewings.length > 0 && (
         <section className="mt-8">
           <h2 className="mb-3 font-heading text-lg font-semibold text-navy-950">
-            Awaiting Vendor Confirmation
+            Awaiting {listingType === "lettings" ? "Landlord" : "Vendor"} Confirmation
           </h2>
           <ul className="flex flex-col gap-2">
             {awaitingViewings.map((v) => (

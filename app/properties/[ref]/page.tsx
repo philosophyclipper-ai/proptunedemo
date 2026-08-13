@@ -186,7 +186,7 @@ export default async function PropertyDetailPage({
         <div className="flex flex-col gap-6">
           <section className="rounded-lg border border-border-hairline bg-paper p-5">
             <h2 className="mb-3 font-heading text-lg font-semibold text-navy-950">
-              Vendor / Landlord
+              {isLettings ? "Landlord" : "Vendor"}
             </h2>
             {vendorContact ? (
               <Link href={`/contacts/${vendorContact.id}`} className="block hover:underline">
@@ -197,7 +197,9 @@ export default async function PropertyDetailPage({
                 </p>
               </Link>
             ) : (
-              <p className="text-sm text-ink-muted">No vendor on file.</p>
+              <p className="text-sm text-ink-muted">
+                No {isLettings ? "landlord" : "vendor"} on file.
+              </p>
             )}
           </section>
 
@@ -208,7 +210,11 @@ export default async function PropertyDetailPage({
             <p className="text-sm text-ink-muted">
               Conducted by{" "}
               <span className="font-medium text-ink">
-                {titleCase(viewingArrangement.conducted_by)}
+                {viewingArrangement.conducted_by === "vendor"
+                  ? isLettings
+                    ? "Landlord"
+                    : "Vendor"
+                  : titleCase(viewingArrangement.conducted_by)}
               </span>
             </p>
             {viewingArrangement.viewing_notes && (

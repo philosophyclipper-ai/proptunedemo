@@ -49,8 +49,9 @@ export function AddViewingForm({
       {vendorLed ? (
         <>
           <p className="text-xs text-ink-faint">
-            This property&apos;s calendar is held by the vendor/landlord — propose times rather
-            than booking one directly. Leave blank to log this as incomplete and add times later.
+            This property&apos;s calendar is held by the{" "}
+            {listingType === "lettings" ? "landlord" : "vendor"} — propose times rather than
+            booking one directly. Leave blank to log this as incomplete and add times later.
           </p>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Proposed Time 1 (optional)">

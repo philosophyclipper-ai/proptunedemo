@@ -12,11 +12,13 @@ const PRICE_QUALIFIERS = [
   { value: "offers_in_region_of", label: "Offers in the Region Of" },
   { value: "poa", label: "POA" },
 ];
-const VIEWING_CONDUCTED_BY = [
-  { value: "agency_staff", label: "Agency Staff" },
-  { value: "viewing_agent", label: "Viewing Agent" },
-  { value: "vendor", label: "Vendor / Landlord" },
-];
+function viewingConductedByOptions(isLettings: boolean) {
+  return [
+    { value: "agency_staff", label: "Agency Staff" },
+    { value: "viewing_agent", label: "Viewing Agent" },
+    { value: "vendor", label: isLettings ? "Landlord" : "Vendor" },
+  ];
+}
 const SALES_STATUSES = [
   ["available", "Available"],
   ["under_offer", "Under Offer"],
@@ -213,7 +215,7 @@ export function ListingForm(props: Props) {
           defaultValue={property?.viewing_conducted_by ?? "agency_staff"}
           className={inputClass}
         >
-          {VIEWING_CONDUCTED_BY.map((v) => (
+          {viewingConductedByOptions(isLettings).map((v) => (
             <option key={v.value} value={v.value}>
               {v.label}
             </option>
