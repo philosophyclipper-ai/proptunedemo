@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { apiDelete, apiPatch, apiPost } from "@/lib/ui/mutations";
-import type { Contact, Property } from "@/lib/ui/types";
+import type { Contact, Property, Viewing } from "@/lib/ui/types";
 import type { ActionState } from "@/lib/ui/action-state";
 
 function str(formData: FormData, key: string): string | undefined {
@@ -175,8 +175,18 @@ export async function createViewingAction(
       payload.buyer_property_status = str(formData, "buyer_property_status") ?? null;
     }
 
-    const result = await apiPost("/api/v1/viewings", payload);
+    const result = await apiPost<Viewing>("/api/v1/viewings", payload);
     if (!result.ok) throw new Error(result.error);
+
+    const notes = str(formData, "notes");
+    if (notes) {
+      await apiPost("/api/v1/notes", {
+        entity_type: "viewing",
+        entity_id: result.data.id,
+        author_type: "user",
+        body: notes,
+      });
+    }
 
     revalidatePath(`/properties/${ref}`);
     revalidatePath(listingType === "sales" ? "/sales/viewings" : "/lettings/viewings");

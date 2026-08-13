@@ -109,6 +109,10 @@ export function AddViewingForm({
         </div>
       )}
 
+      <Field label="Notes (optional)">
+        <textarea name="notes" rows={2} className={inputClass} />
+      </Field>
+
       {state.status === "error" && <p className="text-sm text-red-600">{state.message}</p>}
 
       <button
