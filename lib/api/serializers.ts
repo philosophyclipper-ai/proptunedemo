@@ -63,6 +63,7 @@ export function toProperty(row: Row) {
     closing_date: row.closing_date,
     went_live_at: row.went_live_at,
     negotiator_id: row.negotiator_id,
+    description: row.description,
     photos: photoUrls(row),
     created_at: row.created_at,
     updated_at: row.updated_at,

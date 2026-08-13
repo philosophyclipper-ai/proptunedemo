@@ -114,6 +114,7 @@ export const POST = withErrorHandling(async (request) => {
         viewing_notes: body.viewing_notes ?? null,
         went_live_at: body.went_live_at ?? new Date().toISOString(),
         negotiator_id: body.negotiator_id ?? null,
+        description: body.description ?? null,
       };
 
       let ref: string = body.ref ?? generatePropertyRef(body.postcode);

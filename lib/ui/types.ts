@@ -34,6 +34,7 @@ export type Property = {
   closing_date: string | null;
   went_live_at: string | null;
   negotiator_id: string | null;
+  description: string | null;
   photos: string[];
   created_at: string;
   updated_at: string;

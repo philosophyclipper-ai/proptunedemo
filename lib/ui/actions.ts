@@ -71,6 +71,7 @@ export async function createListing(
       went_live_at: str(formData, "went_live_at")
         ? new Date(str(formData, "went_live_at")!).toISOString()
         : undefined,
+      description: str(formData, "description") ?? null,
     };
 
     if (listingType === "sales") {
@@ -120,6 +121,7 @@ export async function updateListing(
       went_live_at: str(formData, "went_live_at")
         ? new Date(str(formData, "went_live_at")!).toISOString()
         : null,
+      description: str(formData, "description") ?? null,
     };
     if (vendorContactId) payload.vendor_contact_id = vendorContactId;
 

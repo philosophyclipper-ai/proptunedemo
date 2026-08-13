@@ -101,17 +101,41 @@ export default async function PropertyDetailPage({
         </div>
       </header>
 
-      {property.photos.length > 0 && (
-        <div className="mb-6 flex gap-2 overflow-x-auto">
-          {property.photos.map((url) => (
-            // eslint-disable-next-line @next/next/no-img-element -- external demo storage, not worth a remotePatterns entry
-            <img
-              key={url}
-              src={url}
-              alt=""
-              className="h-56 w-80 shrink-0 rounded-lg object-cover"
-            />
-          ))}
+      {(property.photos.length > 0 || property.description) && (
+        <div className="mb-6 flex flex-col gap-3">
+          <div className="flex flex-col gap-4 sm:flex-row">
+            {property.photos.length > 0 && (
+              // eslint-disable-next-line @next/next/no-img-element -- external demo storage, not worth a remotePatterns entry
+              <img
+                src={property.photos[0]}
+                alt=""
+                className="h-72 shrink-0 rounded-lg object-cover sm:w-[28rem]"
+              />
+            )}
+            {property.description && (
+              <div className="flex min-w-0 flex-1 flex-col rounded-lg border border-border-hairline bg-paper p-4">
+                <h2 className="mb-2 font-heading text-sm font-semibold uppercase tracking-wide text-ink-faint">
+                  Description
+                </h2>
+                <div className="h-56 overflow-y-auto whitespace-pre-wrap pr-2 text-sm text-ink">
+                  {property.description}
+                </div>
+              </div>
+            )}
+          </div>
+          {property.photos.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto">
+              {property.photos.slice(1).map((url) => (
+                // eslint-disable-next-line @next/next/no-img-element -- external demo storage, not worth a remotePatterns entry
+                <img
+                  key={url}
+                  src={url}
+                  alt=""
+                  className="h-32 w-48 shrink-0 rounded-lg object-cover"
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

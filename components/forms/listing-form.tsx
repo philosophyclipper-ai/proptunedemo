@@ -185,6 +185,15 @@ export function ListingForm(props: Props) {
         </div>
       )}
 
+      <Field label="Description">
+        <textarea
+          name="description"
+          rows={4}
+          defaultValue={property?.description ?? ""}
+          className={inputClass}
+        />
+      </Field>
+
       {props.mode === "edit" && (
         <div className="grid grid-cols-2 gap-3">
           <Field label="Status">
