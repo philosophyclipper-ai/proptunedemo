@@ -99,6 +99,9 @@ export const POST = withErrorHandling(async (request) => {
             phone_secondary: body.phone_secondary ?? existing.phone_secondary,
             email: body.email ?? existing.email,
             company: body.company ?? existing.company,
+            mortgage_status: body.mortgage_status ?? existing.mortgage_status,
+            property_ownership_status:
+              body.property_ownership_status ?? existing.property_ownership_status,
           })
           .eq("id", existing.id)
           .select("*")
@@ -118,6 +121,8 @@ export const POST = withErrorHandling(async (request) => {
           phone_secondary: body.phone_secondary ?? null,
           email: body.email ?? null,
           company: body.company ?? null,
+          mortgage_status: body.mortgage_status ?? null,
+          property_ownership_status: body.property_ownership_status ?? null,
         })
         .select("*")
         .single();

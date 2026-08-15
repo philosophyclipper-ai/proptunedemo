@@ -33,6 +33,8 @@ export function toContact(row: Row) {
     phone_secondary: row.phone_secondary,
     email: row.email,
     company: row.company,
+    mortgage_status: row.mortgage_status,
+    property_ownership_status: row.property_ownership_status,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };

@@ -6,6 +6,10 @@ import type { Contact, Note, Offer, Viewing } from "@/lib/ui/types";
 import { Pill } from "@/components/pill";
 import { offerStatusTone, viewingStatusTone } from "@/lib/ui/status-tone";
 import { formatDateTime, formatMoney, titleCase } from "@/lib/ui/format";
+import {
+  MORTGAGE_STATUS_LABELS,
+  PROPERTY_OWNERSHIP_STATUS_LABELS,
+} from "@/lib/ui/buyer-position";
 import { Modal } from "@/components/modal";
 import { AddViewingForm } from "@/components/forms/add-viewing-form";
 import { AddOfferForm } from "@/components/forms/add-offer-form";
@@ -104,20 +108,6 @@ export function PropertyTabs({
   );
 }
 
-const MORTGAGE_STATUS_LABELS: Record<string, string> = {
-  not_required: "Mortgage not required",
-  mortgage_required: "Mortgage required",
-  approved_in_principle: "Approved in principle",
-};
-
-const BUYER_PROPERTY_STATUS_LABELS: Record<string, string> = {
-  first_time_buyer: "First time buyer",
-  chain_free: "Chain free",
-  on_the_market: "Their property is on the market",
-  under_offer: "Their property is under offer",
-  sold: "Their property is sold",
-};
-
 function ViewingsTab({
   propertyRef,
   listingType,
@@ -170,6 +160,7 @@ function ViewingsTab({
                 contact={contacts[v.contact_id]}
                 notes={viewingFeedback}
                 revalidatePaths={revalidatePaths}
+                listingType={listingType}
               >
                 <div className="flex items-center justify-between">
                   <Link
@@ -192,7 +183,7 @@ function ViewingsTab({
                   <p className="mt-1 flex flex-wrap gap-x-2 text-xs text-ink-faint">
                     {v.mortgage_status && <span>{MORTGAGE_STATUS_LABELS[v.mortgage_status]}</span>}
                     {v.buyer_property_status && (
-                      <span>{BUYER_PROPERTY_STATUS_LABELS[v.buyer_property_status]}</span>
+                      <span>{PROPERTY_OWNERSHIP_STATUS_LABELS[v.buyer_property_status]}</span>
                     )}
                   </p>
                 )}

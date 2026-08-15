@@ -6,6 +6,8 @@ export type Contact = {
   phone_secondary: string | null;
   email: string | null;
   company: string | null;
+  mortgage_status: MortgageStatus | null;
+  property_ownership_status: BuyerPropertyStatus | null;
   created_at: string;
   updated_at: string;
 };

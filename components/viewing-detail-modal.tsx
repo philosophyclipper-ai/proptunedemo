@@ -22,6 +22,7 @@ export function ViewingDetailModal({
   revalidatePaths,
   className,
   children,
+  listingType = "sales",
 }: {
   viewing: Viewing;
   contact?: Contact;
@@ -29,6 +30,7 @@ export function ViewingDetailModal({
   revalidatePaths: string[];
   className?: string;
   children: ReactNode;
+  listingType?: "sales" | "lettings";
 }) {
   return (
     <Modal
@@ -51,7 +53,11 @@ export function ViewingDetailModal({
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 Contact
               </p>
-              <QuickEditContactForm contact={contact} revalidatePaths={revalidatePaths} />
+              <QuickEditContactForm
+                contact={contact}
+                revalidatePaths={revalidatePaths}
+                showBuyerFields={listingType === "sales"}
+              />
             </section>
           )}
 

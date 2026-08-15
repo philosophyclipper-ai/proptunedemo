@@ -3,20 +3,7 @@
 import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { createViewingAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
-
-const MORTGAGE_STATUSES = [
-  { value: "not_required", label: "Not Required" },
-  { value: "mortgage_required", label: "Mortgage Required" },
-  { value: "approved_in_principle", label: "Approved in Principle" },
-];
-
-const BUYER_PROPERTY_STATUSES = [
-  { value: "first_time_buyer", label: "First Time Buyer" },
-  { value: "chain_free", label: "Chain Free" },
-  { value: "on_the_market", label: "On the Market" },
-  { value: "under_offer", label: "Under Offer" },
-  { value: "sold", label: "Sold" },
-];
+import { MORTGAGE_STATUS_OPTIONS, PROPERTY_OWNERSHIP_STATUS_OPTIONS } from "@/lib/ui/buyer-position";
 
 export function AddViewingForm({
   propertyRef,
@@ -89,7 +76,7 @@ export function AddViewingForm({
             <Field label="Mortgage Status">
               <select name="mortgage_status" defaultValue="" className={inputClass}>
                 <option value="">Not asked</option>
-                {MORTGAGE_STATUSES.map((m) => (
+                {MORTGAGE_STATUS_OPTIONS.map((m) => (
                   <option key={m.value} value={m.value}>
                     {m.label}
                   </option>
@@ -99,7 +86,7 @@ export function AddViewingForm({
             <Field label="Their Property Status">
               <select name="buyer_property_status" defaultValue="" className={inputClass}>
                 <option value="">Not asked</option>
-                {BUYER_PROPERTY_STATUSES.map((b) => (
+                {PROPERTY_OWNERSHIP_STATUS_OPTIONS.map((b) => (
                   <option key={b.value} value={b.value}>
                     {b.label}
                   </option>

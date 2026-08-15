@@ -317,6 +317,13 @@ export async function updateContactAction(
     if (formData.has("roles_editable")) {
       payload.roles = formData.getAll("roles").filter((r): r is string => typeof r === "string");
     }
+    // Only present when the form actually rendered these fields (contact
+    // edit always does; the viewing/offer quick-edit only for sales) — an
+    // absent marker means "not shown here", not "clear it".
+    if (formData.has("buyer_fields_editable")) {
+      payload.mortgage_status = str(formData, "mortgage_status") ?? null;
+      payload.property_ownership_status = str(formData, "property_ownership_status") ?? null;
+    }
 
     const result = await apiPatch<Contact>(`/api/v1/contacts/${contactId}`, payload);
     if (!result.ok) throw new Error(result.error);
