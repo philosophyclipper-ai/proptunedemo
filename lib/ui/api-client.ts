@@ -8,7 +8,6 @@ import type {
   User,
   Valuation,
   Viewing,
-  ViewingArrangement,
 } from "@/lib/ui/types";
 
 // Every CRM page reads through /api/v1 like any other client would — the UI
@@ -70,10 +69,6 @@ export async function getAllProperties(): Promise<Property[]> {
 
 export async function getProperty(ref: string) {
   return apiGet<Property>(`/api/v1/properties/${ref}`);
-}
-
-export async function getViewingArrangement(ref: string) {
-  return apiGet<ViewingArrangement>(`/api/v1/properties/${ref}/viewing-arrangement`);
 }
 
 export async function getPropertyNotes(ref: string) {

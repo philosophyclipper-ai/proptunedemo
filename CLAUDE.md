@@ -63,19 +63,25 @@ maintenance) — never written to, never queried by a voice agent.
 
 ## Viewing arrangement
 
-There is no availability table. Scottish agencies don't hold structured availability.
+There is no availability table, and deliberately no structured field for who conducts
+viewings either — a clean `vendor`/`agency_staff` flag would make branching too easy for
+an integration and doesn't reflect what a real client CRM hands over. Everything about
+how a viewing gets arranged — who shows the property, when they're generally free, access
+notes — lives in one free-text field: `properties.viewing_notes`. Real entries read like
+a few bullet points, not prose, and should stay genuinely messy: some properties should
+read unambiguously, others should leave who's running it genuinely unclear, matching how
+a negotiator actually writes these up.
 
-`properties.viewing_conducted_by` = `vendor` | `viewing_agent` | `agency_staff`.
+Whoever's booking a viewing (staff, or an AI agent that's read `viewing_notes`) decides
+which shape to send to `POST /viewings`, per-viewing, not per-property: `proposed_times`
+when it needs to be put to someone before anything's fixed (created `requested`, plus a
+follow-up task); `scheduled_at` when a slot can be committed directly (created
+`confirmed`, with a calendar event stamped). Neither → `incomplete`, added later via
+`PATCH /viewings/:id`.
 
-- **vendor** → no calendar exists. Constraints live as free text in
-  `properties.viewing_notes`. The agent *proposes* times: the viewing is created as
-  `requested` with `proposed_times`, plus a task for the negotiator.
-- **viewing_agent / agency_staff** → availability lives in Google Calendar
-  (`viewing_calendar_id`). The agent *commits*: creates the event, viewing is `confirmed`.
-
-`GET /properties/:ref/viewing-arrangement` serves both; the agent branches on the response.
-
-`viewing_notes` is unparseable by design. Seed data must include messy examples.
+`properties.viewing_calendar_id` still exists as a plain reference field (an actual
+calendar identifier) for properties where a calendar genuinely applies — it's read data,
+not a branching flag, and nothing infers its presence automatically.
 
 ## How a call is recorded
 

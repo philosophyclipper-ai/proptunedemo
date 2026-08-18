@@ -19,7 +19,6 @@ import { OfferDetailModal } from "@/components/offer-detail-modal";
 type Props = {
   propertyRef: string;
   listingType: "sales" | "lettings";
-  vendorLed: boolean;
   viewings: Viewing[];
   offers: Offer[];
   notes: Note[];
@@ -34,7 +33,6 @@ const addButtonClass =
 export function PropertyTabs({
   propertyRef,
   listingType,
-  vendorLed,
   viewings,
   offers,
   notes,
@@ -83,7 +81,6 @@ export function PropertyTabs({
           <ViewingsTab
             propertyRef={propertyRef}
             listingType={listingType}
-            vendorLed={vendorLed}
             viewings={viewings}
             contacts={contacts}
             feedback={feedback}
@@ -111,7 +108,6 @@ export function PropertyTabs({
 function ViewingsTab({
   propertyRef,
   listingType,
-  vendorLed,
   viewings,
   contacts,
   feedback,
@@ -119,7 +115,6 @@ function ViewingsTab({
 }: {
   propertyRef: string;
   listingType: "sales" | "lettings";
-  vendorLed: boolean;
   viewings: Viewing[];
   contacts: Record<string, Contact>;
   feedback: Record<string, Note[]>;
@@ -137,12 +132,7 @@ function ViewingsTab({
           )}
         >
           {(close) => (
-            <AddViewingForm
-              propertyRef={propertyRef}
-              listingType={listingType}
-              vendorLed={vendorLed}
-              onSuccess={close}
-            />
+            <AddViewingForm propertyRef={propertyRef} listingType={listingType} onSuccess={close} />
           )}
         </Modal>
       </div>

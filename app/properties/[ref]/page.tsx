@@ -6,7 +6,6 @@ import {
   getProperty,
   getPropertyNotes,
   getUsers,
-  getViewingArrangement,
   getViewings,
 } from "@/lib/ui/api-client";
 import { resolveContacts } from "@/lib/ui/resolve-contacts";
@@ -35,9 +34,8 @@ export default async function PropertyDetailPage({
   const property = await getProperty(ref).catch(() => null);
   if (!property) notFound();
 
-  const [viewingArrangement, notesResult, viewingsResult, offersResult, vendorContact, { users }] =
+  const [notesResult, viewingsResult, offersResult, vendorContact, { users }] =
     await Promise.all([
-      getViewingArrangement(ref),
       getPropertyNotes(ref),
       getViewings({ property_ref: ref }),
       getOffers({ property_ref: ref }),
@@ -95,7 +93,6 @@ export default async function PropertyDetailPage({
             vendorName={vendorContact?.name}
             vendorPhone={vendorContact?.phone_primary}
             vendorEmail={vendorContact?.email ?? undefined}
-            viewingNotes={viewingArrangement.viewing_notes}
             users={users}
           />
         </div>
@@ -196,7 +193,6 @@ export default async function PropertyDetailPage({
             <PropertyTabs
               propertyRef={property.ref}
               listingType={property.listing_type}
-              vendorLed={viewingArrangement.conducted_by === "vendor"}
               viewings={viewingsResult.viewings}
               offers={offersResult.offers}
               notes={notesResult.notes}
@@ -231,20 +227,12 @@ export default async function PropertyDetailPage({
             <h2 className="mb-3 font-heading text-lg font-semibold text-navy-950">
               Viewing Arrangement
             </h2>
-            <p className="text-sm text-ink-muted">
-              Conducted by{" "}
-              <span className="font-medium text-ink">
-                {viewingArrangement.conducted_by === "vendor"
-                  ? isLettings
-                    ? "Landlord"
-                    : "Vendor"
-                  : titleCase(viewingArrangement.conducted_by)}
-              </span>
-            </p>
-            {viewingArrangement.viewing_notes && (
-              <p className="mt-3 whitespace-pre-wrap rounded border border-border-hairline bg-cream p-3 text-sm text-ink">
-                {viewingArrangement.viewing_notes}
+            {property.viewing_notes ? (
+              <p className="whitespace-pre-wrap rounded border border-border-hairline bg-cream p-3 text-sm text-ink">
+                {property.viewing_notes}
               </p>
+            ) : (
+              <p className="text-sm text-ink-muted">No viewing notes on file.</p>
             )}
           </section>
         </div>

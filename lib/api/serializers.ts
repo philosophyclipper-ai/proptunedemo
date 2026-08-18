@@ -61,7 +61,7 @@ export function toProperty(row: Row) {
     council_tax_band: row.council_tax_band,
     epc_rating: row.epc_rating,
     vendor_contact_id: row.vendor_contact_id,
-    viewing_conducted_by: row.viewing_conducted_by,
+    viewing_notes: row.viewing_notes,
     closing_date: row.closing_date,
     went_live_at: row.went_live_at,
     negotiator_id: row.negotiator_id,

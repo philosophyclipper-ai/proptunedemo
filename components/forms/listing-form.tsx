@@ -12,13 +12,6 @@ const PRICE_QUALIFIERS = [
   { value: "offers_in_region_of", label: "Offers in the Region Of" },
   { value: "poa", label: "POA" },
 ];
-function viewingConductedByOptions(isLettings: boolean) {
-  return [
-    { value: "agency_staff", label: "Agency Staff" },
-    { value: "viewing_agent", label: "Viewing Agent" },
-    { value: "vendor", label: isLettings ? "Landlord" : "Vendor" },
-  ];
-}
 const SALES_STATUSES = [
   ["available", "Available"],
   ["under_offer", "Under Offer"],
@@ -39,7 +32,6 @@ type Props =
       vendorName?: string;
       vendorPhone?: string;
       vendorEmail?: string;
-      viewingNotes?: string | null;
       users: User[];
       onSuccess: () => void;
     };
@@ -218,24 +210,12 @@ export function ListingForm(props: Props) {
         </div>
       )}
 
-      <Field label="Viewing Conducted By">
-        <select
-          name="viewing_conducted_by"
-          defaultValue={property?.viewing_conducted_by ?? "agency_staff"}
-          className={inputClass}
-        >
-          {viewingConductedByOptions(isLettings).map((v) => (
-            <option key={v.value} value={v.value}>
-              {v.label}
-            </option>
-          ))}
-        </select>
-      </Field>
       <Field label="Viewing Notes">
         <textarea
           name="viewing_notes"
-          rows={2}
-          defaultValue={props.mode === "edit" ? (props.viewingNotes ?? "") : ""}
+          rows={4}
+          placeholder="e.g. one bullet per point — who shows the property, general availability, access notes"
+          defaultValue={property?.viewing_notes ?? ""}
           className={inputClass}
         />
       </Field>

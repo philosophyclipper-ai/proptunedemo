@@ -8,12 +8,10 @@ import { MORTGAGE_STATUS_OPTIONS, PROPERTY_OWNERSHIP_STATUS_OPTIONS } from "@/li
 export function AddViewingForm({
   propertyRef,
   listingType,
-  vendorLed,
   onSuccess,
 }: {
   propertyRef: string;
   listingType: "sales" | "lettings";
-  vendorLed: boolean;
   onSuccess: () => void;
 }) {
   const action = createViewingAction.bind(null, propertyRef, listingType);
@@ -33,30 +31,22 @@ export function AddViewingForm({
         <input name="contact_email" type="email" className={inputClass} />
       </Field>
 
-      {vendorLed ? (
-        <>
-          <p className="text-xs text-ink-faint">
-            This property&apos;s calendar is held by the{" "}
-            {listingType === "lettings" ? "landlord" : "vendor"} — propose times rather than
-            booking one directly. Leave blank to log this as incomplete and add times later.
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Proposed Time 1 (optional)">
-              <input name="proposed_time_1" type="datetime-local" className={inputClass} />
-            </Field>
-            <Field label="Proposed Time 2 (optional)">
-              <input name="proposed_time_2" type="datetime-local" className={inputClass} />
-            </Field>
-          </div>
-        </>
-      ) : (
-        <Field label="Scheduled Time (optional)">
-          <input name="scheduled_at" type="datetime-local" className={inputClass} />
-          <p className="mt-1 text-xs text-ink-faint">
-            Leave blank to log this as incomplete and add a time later.
-          </p>
+      <p className="text-xs text-ink-faint">
+        Check the property&apos;s viewing notes to see who arranges viewings and how. If a time
+        can be booked directly, use Scheduled Time. If it needs to be put to someone first, use
+        Proposed Times instead. Leave both blank to log this as incomplete and add a time later.
+      </p>
+      <Field label="Scheduled Time (optional)">
+        <input name="scheduled_at" type="datetime-local" className={inputClass} />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Proposed Time 1 (optional)">
+          <input name="proposed_time_1" type="datetime-local" className={inputClass} />
         </Field>
-      )}
+        <Field label="Proposed Time 2 (optional)">
+          <input name="proposed_time_2" type="datetime-local" className={inputClass} />
+        </Field>
+      </div>
 
       <label className="flex items-center gap-2 text-sm text-ink">
         <input type="checkbox" name="confirmed" className="h-4 w-4" />
@@ -108,7 +98,7 @@ export function AddViewingForm({
         disabled={pending}
         className="cursor-pointer rounded bg-navy-900 px-4 py-2 text-sm font-medium text-cream hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {pending ? "Saving…" : vendorLed ? "Propose Viewing" : "Book Viewing"}
+        {pending ? "Saving…" : "Save Viewing"}
       </button>
     </form>
   );

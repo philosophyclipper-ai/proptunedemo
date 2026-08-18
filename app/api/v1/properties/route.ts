@@ -109,7 +109,6 @@ export const POST = withErrorHandling(async (request) => {
         council_tax_band: body.council_tax_band ?? null,
         epc_rating: body.epc_rating ?? null,
         vendor_contact_id: body.vendor_contact_id ?? null,
-        viewing_conducted_by: body.viewing_conducted_by ?? "agency_staff",
         viewing_calendar_id: body.viewing_calendar_id ?? null,
         viewing_notes: body.viewing_notes ?? null,
         went_live_at: body.went_live_at ?? new Date().toISOString(),

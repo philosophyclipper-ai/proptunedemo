@@ -61,21 +61,24 @@ export const POST = withErrorHandling(async (request) => {
     "POST /viewings",
     idempotencyKey,
     async () => {
-      const vendorLed = property.viewing_conducted_by === "vendor";
+      // No property-level flag decides this anymore — whoever's booking
+      // (staff or an AI agent) has read the property's viewing_notes and
+      // decides which shape fits: proposed_times when times need to be put
+      // to someone before anything's fixed, scheduled_at when a slot can be
+      // committed directly. Neither given means there's nothing to work
+      // with yet, so it's incomplete rather than guessed at.
+      const hasProposedTimes = Boolean(body.proposed_times && body.proposed_times.length > 0);
+      const hasScheduledAt = Boolean(body.scheduled_at);
 
-      if (vendorLed) {
-        // A time is no longer required up front — a viewing with no
-        // proposed times yet is "incomplete" rather than requested.
-        const hasProposedTimes = Boolean(body.proposed_times && body.proposed_times.length > 0);
-
+      if (hasProposedTimes && !hasScheduledAt) {
         const { data: viewing, error } = await supabase
           .from("viewings")
           .insert({
             agency_id: agencyId,
             property_id: property.id,
             contact_id: body.contact_id,
-            status: hasProposedTimes ? (explicitStatus ?? "requested") : "incomplete",
-            proposed_times: hasProposedTimes ? body.proposed_times : null,
+            status: explicitStatus ?? "requested",
+            proposed_times: body.proposed_times,
             mortgage_status: body.mortgage_status ?? null,
             buyer_property_status: body.buyer_property_status ?? null,
           })
@@ -84,15 +87,13 @@ export const POST = withErrorHandling(async (request) => {
 
         if (error) throw new ApiError("validation_failed", error.message);
 
-        if (hasProposedTimes) {
-          await supabase.from("tasks").insert({
-            agency_id: agencyId,
-            entity_type: "viewing",
-            entity_id: viewing.id,
-            title: `Confirm viewing time with vendor for ${property.ref}`,
-            body: `Proposed times: ${body.proposed_times.join(", ")}`,
-          });
-        }
+        await supabase.from("tasks").insert({
+          agency_id: agencyId,
+          entity_type: "viewing",
+          entity_id: viewing.id,
+          title: `Confirm viewing time for ${property.ref}`,
+          body: `Proposed times: ${body.proposed_times.join(", ")}`,
+        });
 
         return {
           status: 201,
@@ -100,9 +101,6 @@ export const POST = withErrorHandling(async (request) => {
         };
       }
 
-      // Same relaxation for the agency-led side: no scheduled_at means
-      // incomplete rather than an auto-confirmed slot.
-      const hasScheduledAt = Boolean(body.scheduled_at);
       const resolvedStatus = hasScheduledAt ? (explicitStatus ?? "confirmed") : "incomplete";
 
       const { data: viewing, error } = await supabase

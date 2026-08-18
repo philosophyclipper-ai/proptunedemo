@@ -39,7 +39,6 @@ const EDITABLE_FIELDS = [
   "council_tax_band",
   "epc_rating",
   "vendor_contact_id",
-  "viewing_conducted_by",
   "viewing_calendar_id",
   "viewing_notes",
   "closing_date",

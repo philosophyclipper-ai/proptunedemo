@@ -21,7 +21,6 @@ PATCH  /contacts/:id
 ```
 GET    /properties?postcode=&q=&min_price=&max_price=&beds=&type=&status=&listing_type=&cursor=
 GET    /properties/:ref
-GET    /properties/:ref/viewing-arrangement
 GET    /properties/:ref/notes      UI only
 POST   /properties                 UI only — onboards a new listing
 PATCH  /properties/:ref            UI only — full listing edit
@@ -38,20 +37,14 @@ of the sales status vocabulary.
 `POST /properties` assigns `ref` automatically (outward postcode + a random 5-digit
 number) — never pass a uuid, and there's no way to choose your own ref.
 
-`GET /properties/:ref/viewing-arrangement` returns:
-
-```json
-{
-  "ref": "EH12345",
-  "conducted_by": "vendor",
-  "viewing_notes": "Owner works shifts, evenings after 6 usually fine, never Sundays.",
-  "can_commit": false,
-  "free_slots": []
-}
-```
-
-For `viewing_agent` / `agency_staff`: `can_commit: true` and `free_slots` populated
-from Google Calendar.
+There is deliberately no structured field for who conducts viewings, whether a
+calendar exists, or general availability — real CRMs don't hand an integration a
+clean flag for this, and neither does this one. `properties.viewing_notes` is a
+single free-text field (returned on the property object, editable via `PATCH
+/properties/:ref`) covering all of it: who shows the property, when they're
+generally free, and any access notes — typically a few bullet points. Whoever's
+booking (staff or an AI agent) reads it and decides whether to propose times or
+commit one directly; see `POST /viewings` below.
 
 ## Valuations
 
@@ -70,8 +63,10 @@ PATCH  /viewings/:id               confirm | cancel | reschedule, OR direct fiel
 POST   /viewings/:id/feedback      writes a note against the viewing
 ```
 
-`POST /viewings` branches on `viewing_conducted_by`:
-vendor → `requested` + `proposed_times` + task; agent-led → calendar event + `confirmed`.
+`POST /viewings` branches on which fields the caller sends, not any property flag:
+send `proposed_times` (no `scheduled_at`) → `requested` + a follow-up task is created;
+send `scheduled_at` → `confirmed` directly, with a calendar event stamped. Send neither
+and it's created `incomplete` — add a time later via `PATCH /viewings/:id`.
 
 `PATCH /viewings/:id` has two shapes: send `action` (confirm/cancel/reschedule) for the
 voice-tool contract, or omit it and set `status`/`scheduled_at`/`proposed_times`/
@@ -154,8 +149,7 @@ Only these are exposed to Vapi.
 | `find_contact_by_phone` | `GET /contacts?phone=` |
 | `create_contact` | `POST /contacts` |
 | `search_properties` | `GET /properties?...` |
-| `get_property` | `GET /properties/:ref` |
-| `get_viewing_arrangement` | `GET /properties/:ref/viewing-arrangement` |
+| `get_property` | `GET /properties/:ref` (includes `viewing_notes`) |
 | `book_or_request_viewing` | `POST /viewings` |
 | `find_viewings` | `GET /viewings?phone=` |
 | `cancel_or_reschedule_viewing` | `PATCH /viewings/:id` |

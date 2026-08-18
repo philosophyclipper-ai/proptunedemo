@@ -32,7 +32,7 @@ export type Property = {
   council_tax_band: string | null;
   epc_rating: string | null;
   vendor_contact_id: string | null;
-  viewing_conducted_by: "vendor" | "viewing_agent" | "agency_staff";
+  viewing_notes: string | null;
   closing_date: string | null;
   went_live_at: string | null;
   negotiator_id: string | null;
@@ -40,14 +40,6 @@ export type Property = {
   photos: string[];
   created_at: string;
   updated_at: string;
-};
-
-export type ViewingArrangement = {
-  ref: string;
-  conducted_by: "vendor" | "viewing_agent" | "agency_staff";
-  viewing_notes: string | null;
-  can_commit: boolean;
-  free_slots: string[];
 };
 
 export type Valuation = {
