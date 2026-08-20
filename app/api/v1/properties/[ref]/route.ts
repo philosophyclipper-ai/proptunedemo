@@ -87,33 +87,6 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
 
   if (error) throw new ApiError("validation_failed", error.message);
 
-  // Fires once, on the genuine edge into "photographed" — not on every
-  // subsequent edit to an already-photographed listing. Notifies the n8n
-  // workflow that drafts the property ad. Never blocks or fails the PATCH
-  // itself if the webhook is unreachable or unconfigured.
-  if (
-    data.listing_type === "sales" &&
-    data.status === "photographed" &&
-    existing.status !== "photographed" &&
-    process.env.PHOTOGRAPHED_WEBHOOK_URL
-  ) {
-    try {
-      const res = await fetch(process.env.PHOTOGRAPHED_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toProperty(data)),
-      });
-      if (!res.ok) {
-        const preview = await res.text().catch(() => "");
-        console.error(
-          `photographed webhook rejected: ${res.status} ${res.statusText} — ${preview.slice(0, 500)}`
-        );
-      }
-    } catch (err) {
-      console.error("photographed webhook failed", err);
-    }
-  }
-
   return NextResponse.json(toProperty(data));
 });
 

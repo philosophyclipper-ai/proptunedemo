@@ -9,7 +9,6 @@ const STATUS_OPTIONS = [
   { value: "", label: "All statuses" },
   { value: "valued", label: "Valued" },
   { value: "instructed", label: "Instructed" },
-  { value: "photographed", label: "Photographed" },
   { value: "available", label: "Available" },
   { value: "under_offer", label: "Under Offer" },
   { value: "sold", label: "Sold" },

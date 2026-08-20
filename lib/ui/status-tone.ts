@@ -8,7 +8,6 @@ export function propertyStatusTone(status: string): Tone {
     case "under_offer":
     case "valued":
     case "instructed":
-    case "photographed":
       return "amber";
     case "sold":
     case "let":
