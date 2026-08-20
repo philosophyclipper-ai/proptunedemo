@@ -5,6 +5,14 @@ import { createListing, updateListing } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
 import type { Property, User } from "@/lib/ui/types";
 
+const PROPERTY_TYPES = [
+  { value: "flat", label: "Flat" },
+  { value: "house", label: "House" },
+  { value: "bungalow", label: "Bungalow" },
+  { value: "cottage", label: "Cottage" },
+  { value: "maisonette", label: "Maisonette" },
+  { value: "land", label: "Land" },
+];
 const PRICE_QUALIFIERS = [
   { value: "offers_over", label: "Offers Over" },
   { value: "fixed_price", label: "Fixed Price" },
@@ -84,110 +92,123 @@ export function ListingForm(props: Props) {
           />
         </Field>
         <Field label="Property Type">
-          <input
+          <select
             name="property_type"
-            placeholder="flat, house, ..."
             defaultValue={property?.property_type ?? "flat"}
             className={inputClass}
-          />
-        </Field>
-        <Field label="Council Tax Band">
-          <input
-            name="council_tax_band"
-            defaultValue={property?.council_tax_band ?? ""}
-            className={inputClass}
-          />
-        </Field>
-        <Field label="EPC Rating">
-          <input name="epc_rating" defaultValue={property?.epc_rating ?? ""} className={inputClass} />
-        </Field>
-        <Field label="Negotiator">
-          <select
-            name="negotiator_id"
-            defaultValue={property?.negotiator_id ?? props.users[0]?.id ?? ""}
-            className={inputClass}
           >
-            <option value="">Unassigned</option>
-            {props.users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
+            {PROPERTY_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
               </option>
             ))}
           </select>
         </Field>
-        <Field label="Went Live">
-          <input
-            name="went_live_at"
-            type="date"
-            defaultValue={
-              props.mode === "edit"
-                ? toDateInputValue(property?.went_live_at)
-                : new Date().toISOString().slice(0, 10)
-            }
-            className={inputClass}
-          />
-        </Field>
+        {props.mode === "edit" && (
+          <>
+            <Field label="Council Tax Band">
+              <input
+                name="council_tax_band"
+                defaultValue={property?.council_tax_band ?? ""}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="EPC Rating">
+              <input
+                name="epc_rating"
+                defaultValue={property?.epc_rating ?? ""}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Negotiator">
+              <select
+                name="negotiator_id"
+                defaultValue={property?.negotiator_id ?? props.users[0]?.id ?? ""}
+                className={inputClass}
+              >
+                <option value="">Unassigned</option>
+                {props.users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Went Live">
+              <input
+                name="went_live_at"
+                type="date"
+                defaultValue={toDateInputValue(property?.went_live_at)}
+                className={inputClass}
+              />
+            </Field>
+          </>
+        )}
       </div>
 
-      {isLettings ? (
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Rent Amount (£)">
-            <input
-              name="rent_amount"
-              type="number"
-              min={0}
-              step="1"
-              defaultValue={property?.rent_amount ?? ""}
-              className={inputClass}
-            />
-          </Field>
-          <Field label="Rent Frequency">
-            <select
-              name="rent_frequency"
-              defaultValue={property?.rent_frequency ?? "monthly"}
-              className={inputClass}
-            >
-              <option value="monthly">Monthly</option>
-              <option value="weekly">Weekly</option>
-            </select>
-          </Field>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Price Qualifier">
-            <select
-              name="price_qualifier"
-              defaultValue={property?.price_qualifier ?? "offers_over"}
-              className={inputClass}
-            >
-              {PRICE_QUALIFIERS.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Asking Price (£)">
-            <input
-              name="asking_price"
-              type="number"
-              min={0}
-              step="1"
-              defaultValue={property?.asking_price ?? ""}
-              className={inputClass}
-            />
-          </Field>
-        </div>
-      )}
+      {props.mode === "edit" && (
+        <>
+          {isLettings ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Rent Amount (£)">
+                <input
+                  name="rent_amount"
+                  type="number"
+                  min={0}
+                  step="1"
+                  defaultValue={property?.rent_amount ?? ""}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Rent Frequency">
+                <select
+                  name="rent_frequency"
+                  defaultValue={property?.rent_frequency ?? "monthly"}
+                  className={inputClass}
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </Field>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Price Qualifier">
+                <select
+                  name="price_qualifier"
+                  defaultValue={property?.price_qualifier ?? "offers_over"}
+                  className={inputClass}
+                >
+                  {PRICE_QUALIFIERS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Asking Price (£)">
+                <input
+                  name="asking_price"
+                  type="number"
+                  min={0}
+                  step="1"
+                  defaultValue={property?.asking_price ?? ""}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
 
-      <Field label="Description">
-        <textarea
-          name="description"
-          rows={4}
-          defaultValue={property?.description ?? ""}
-          className={inputClass}
-        />
-      </Field>
+          <Field label="Description">
+            <textarea
+              name="description"
+              rows={4}
+              defaultValue={property?.description ?? ""}
+              className={inputClass}
+            />
+          </Field>
+        </>
+      )}
 
       {props.mode === "edit" && (
         <div className="grid grid-cols-2 gap-3">
@@ -213,15 +234,17 @@ export function ListingForm(props: Props) {
         </div>
       )}
 
-      <Field label="Viewing Notes">
-        <textarea
-          name="viewing_notes"
-          rows={4}
-          placeholder="e.g. one bullet per point — who shows the property, general availability, access notes"
-          defaultValue={property?.viewing_notes ?? ""}
-          className={inputClass}
-        />
-      </Field>
+      {props.mode === "edit" && (
+        <Field label="Viewing Notes">
+          <textarea
+            name="viewing_notes"
+            rows={4}
+            placeholder="e.g. one bullet per point — who shows the property, general availability, access notes"
+            defaultValue={property?.viewing_notes ?? ""}
+            className={inputClass}
+          />
+        </Field>
+      )}
 
       <div className="rounded border border-border-hairline bg-cream p-3">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">

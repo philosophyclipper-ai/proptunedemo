@@ -98,7 +98,7 @@ export const POST = withErrorHandling(async (request) => {
         bedrooms: body.bedrooms ?? null,
         property_type: body.property_type ?? null,
         tenure: body.tenure ?? null,
-        status: body.status ?? (body.listing_type === "lettings" ? "on_market" : "available"),
+        status: body.status ?? (body.listing_type === "lettings" ? "on_market" : "instructed"),
         listing_type: body.listing_type,
         price_qualifier: body.price_qualifier ?? null,
         asking_price: body.asking_price ?? null,
@@ -111,7 +111,9 @@ export const POST = withErrorHandling(async (request) => {
         vendor_contact_id: body.vendor_contact_id ?? null,
         viewing_calendar_id: body.viewing_calendar_id ?? null,
         viewing_notes: body.viewing_notes ?? null,
-        went_live_at: body.went_live_at ?? new Date().toISOString(),
+        // Not known at onboarding — stamped automatically once the listing
+        // actually goes live (PATCH /properties/:ref), not before.
+        went_live_at: body.went_live_at ?? null,
         negotiator_id: body.negotiator_id ?? null,
         description: body.description ?? null,
       };

@@ -64,6 +64,19 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     throw new ApiError("validation_failed", "No editable fields were provided");
   }
 
+  // went_live_at isn't known at onboarding anymore, so stamp it the moment
+  // the listing actually goes live — but only the first time, and only if
+  // nobody set it explicitly in this same request.
+  const LIVE_STATUSES = ["available", "on_market"];
+  const resultingStatus = updates.status !== undefined ? updates.status : existing.status;
+  if (
+    LIVE_STATUSES.includes(resultingStatus as string) &&
+    !existing.went_live_at &&
+    updates.went_live_at === undefined
+  ) {
+    updates.went_live_at = new Date().toISOString();
+  }
+
   const { data, error } = await supabase
     .from("properties")
     .update(updates)
