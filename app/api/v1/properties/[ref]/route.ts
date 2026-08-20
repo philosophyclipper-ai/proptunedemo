@@ -116,3 +116,66 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
 
   return NextResponse.json(toProperty(data));
 });
+
+// UI only — deletes the listing and everything hanging off it. Voice/n8n
+// never get this; a property going away entirely is a negotiator decision,
+// never something an agent should be able to trigger.
+export const DELETE = withErrorHandling(async (request, { params }) => {
+  const { ref } = await params;
+  const { supabase, agencyId } = await requireApiContext(request);
+  const existing = await getPropertyByRef(supabase, agencyId, ref);
+  const propertyId = existing.id as string;
+
+  const [{ data: viewings }, { data: offers }, { data: maintenance }] = await Promise.all([
+    supabase.from("viewings").select("id").eq("agency_id", agencyId).eq("property_id", propertyId),
+    supabase.from("offers").select("id").eq("agency_id", agencyId).eq("property_id", propertyId),
+    supabase
+      .from("maintenance_issues")
+      .select("id")
+      .eq("agency_id", agencyId)
+      .eq("property_id", propertyId),
+  ]);
+
+  const viewingIds = (viewings ?? []).map((v) => v.id);
+  const offerIds = (offers ?? []).map((o) => o.id);
+  const maintenanceIds = (maintenance ?? []).map((m) => m.id);
+
+  const childEntityFilter = [
+    `and(entity_type.eq.property,entity_id.eq.${propertyId})`,
+    ...(viewingIds.length ? [`and(entity_type.eq.viewing,entity_id.in.(${viewingIds.join(",")}))`] : []),
+    ...(offerIds.length ? [`and(entity_type.eq.offer,entity_id.in.(${offerIds.join(",")}))`] : []),
+    ...(maintenanceIds.length
+      ? [`and(entity_type.eq.maintenance_issue,entity_id.in.(${maintenanceIds.join(",")}))`]
+      : []),
+  ].join(",");
+
+  await supabase.from("notes").delete().eq("agency_id", agencyId).or(childEntityFilter);
+  await supabase.from("tasks").delete().eq("agency_id", agencyId).or(childEntityFilter);
+
+  // offer_contacts cascades automatically when its offers are deleted.
+  await supabase.from("viewings").delete().eq("agency_id", agencyId).eq("property_id", propertyId);
+  await supabase.from("offers").delete().eq("agency_id", agencyId).eq("property_id", propertyId);
+  await supabase
+    .from("maintenance_issues")
+    .delete()
+    .eq("agency_id", agencyId)
+    .eq("property_id", propertyId);
+
+  // Valuations may exist independently of a property — decouple rather
+  // than delete, preserving the valuation history.
+  await supabase
+    .from("valuations")
+    .update({ property_id: null })
+    .eq("agency_id", agencyId)
+    .eq("property_id", propertyId);
+
+  // property_photos cascades automatically (on delete cascade).
+  const { error } = await supabase
+    .from("properties")
+    .delete()
+    .eq("agency_id", agencyId)
+    .eq("ref", ref);
+  if (error) throw new ApiError("validation_failed", error.message);
+
+  return NextResponse.json({ deleted: true });
+});

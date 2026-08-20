@@ -142,6 +142,26 @@ export async function updateListing(
   }
 }
 
+export async function deleteListingAction(
+  ref: string,
+  listingType: "sales" | "lettings",
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prev: ActionState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _formData: FormData
+): Promise<ActionState> {
+  try {
+    const result = await apiDelete(`/api/v1/properties/${ref}`);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidatePath("/sales");
+    revalidatePath("/lettings");
+    return { status: "success", redirectTo: listingType === "sales" ? "/sales" : "/lettings" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
 export async function createViewingAction(
   ref: string,
   listingType: "sales" | "lettings",

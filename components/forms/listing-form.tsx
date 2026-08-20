@@ -3,6 +3,7 @@
 import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { createListing, updateListing } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
+import { DeleteListingButton } from "@/components/forms/delete-listing-button";
 import type { Property, User } from "@/lib/ui/types";
 
 const PROPERTY_TYPES = [
@@ -63,7 +64,8 @@ export function ListingForm(props: Props) {
   const { state, formAction, pending } = useMutationForm(action, props.onSuccess);
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
+      <form action={formAction} className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
         <Field label="Address Line 1">
           <input
@@ -288,6 +290,14 @@ export function ListingForm(props: Props) {
       >
         {pending ? "Saving…" : props.mode === "create" ? "Create Listing" : "Save Changes"}
       </button>
-    </form>
+      </form>
+      {props.mode === "edit" && (
+        <DeleteListingButton
+          propertyRef={property!.ref}
+          listingType={props.listingType}
+          addressLine1={property!.address_line1}
+        />
+      )}
+    </div>
   );
 }
