@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
+// Deliberately no backdrop-click or Escape-to-close — these forms often
+// hold partly-typed data (e.g. a vendor's email mid-entry), and losing it
+// to a stray click or keypress is worse than a slightly less "standard"
+// modal. The X button and completing the form are the only ways out.
 export function Modal({
   trigger,
   title,
@@ -14,27 +18,12 @@ export function Modal({
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
-
   return (
     <>
       {trigger(() => setOpen(true))}
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/50 p-4"
-          onClick={close}
-        >
-          <div
-            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-paper p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-paper p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-heading text-lg font-semibold text-navy-950">{title}</h2>
               <button
