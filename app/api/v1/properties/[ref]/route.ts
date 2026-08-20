@@ -98,11 +98,17 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     process.env.PHOTOGRAPHED_WEBHOOK_URL
   ) {
     try {
-      await fetch(process.env.PHOTOGRAPHED_WEBHOOK_URL, {
+      const res = await fetch(process.env.PHOTOGRAPHED_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(toProperty(data)),
       });
+      if (!res.ok) {
+        const preview = await res.text().catch(() => "");
+        console.error(
+          `photographed webhook rejected: ${res.status} ${res.statusText} — ${preview.slice(0, 500)}`
+        );
+      }
     } catch (err) {
       console.error("photographed webhook failed", err);
     }
