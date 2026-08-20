@@ -33,7 +33,11 @@ export const GET = withErrorHandling(async (request) => {
     query = query.or(`phone_primary.eq.${phone},phone_secondary.eq.${phone}`);
   }
   if (q) {
-    query = query.or(`name.ilike.%${q}%,email.ilike.%${q}%`);
+    // Voice/n8n use the exact-match `phone` param above; `q` is the UI's
+    // free-text search box, so it also catches a partially-typed number.
+    query = query.or(
+      `name.ilike.%${q}%,email.ilike.%${q}%,phone_primary.ilike.%${q}%,phone_secondary.ilike.%${q}%`
+    );
   }
 
   const decoded = cursor ? decodeCursor(cursor) : null;

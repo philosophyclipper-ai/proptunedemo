@@ -7,6 +7,7 @@ import {
 } from "@/lib/ui/buyer-position";
 import { Pill } from "@/components/pill";
 import { AddContactButton } from "@/components/add-contact-button";
+import { ContactSearchBar } from "@/components/contact-search-bar";
 
 const SECTION_ROLES: Record<"sales" | "lettings", string[]> = {
   sales: ["vendor", "buyer", "solicitor"],
@@ -27,7 +28,10 @@ export async function ContactsList({ section }: { section: "sales" | "lettings" 
           <h1 className="font-heading text-2xl font-semibold text-navy-950">Contacts</h1>
           <p className="text-sm text-ink-muted">{contacts.length} contacts</p>
         </div>
-        <AddContactButton section={section} />
+        <div className="flex items-center gap-2">
+          <ContactSearchBar />
+          <AddContactButton section={section} />
+        </div>
       </header>
 
       {contacts.length === 0 ? (

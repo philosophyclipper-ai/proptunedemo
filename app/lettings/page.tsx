@@ -4,6 +4,7 @@ import { PropertyGrid } from "@/components/property-grid";
 import { ListingsFilterForm } from "@/components/listings-filter-form";
 import { AddListingButton } from "@/components/add-listing-button";
 import { AddContactButton } from "@/components/add-contact-button";
+import { ContactSearchBar } from "@/components/contact-search-bar";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All statuses" },
@@ -47,7 +48,8 @@ export default async function LettingsListingsPage({
           <h1 className="font-heading text-2xl font-semibold text-navy-950">Lettings Listings</h1>
           <p className="text-sm text-ink-muted">{properties.length} properties on this page</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <ContactSearchBar />
           <AddContactButton section="lettings" />
           <AddListingButton listingType="lettings" users={users} />
         </div>
