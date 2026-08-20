@@ -52,7 +52,7 @@ const EDITABLE_FIELDS = [
 export const PATCH = withErrorHandling(async (request, { params }) => {
   const { ref } = await params;
   const { supabase, agencyId } = await requireApiContext(request);
-  await getPropertyByRef(supabase, agencyId, ref);
+  const existing = await getPropertyByRef(supabase, agencyId, ref);
   const body = await request.json();
 
   const updates: Record<string, unknown> = {};
@@ -73,5 +73,27 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     .single();
 
   if (error) throw new ApiError("validation_failed", error.message);
+
+  // Fires once, on the genuine edge into "photographed" — not on every
+  // subsequent edit to an already-photographed listing. Notifies the n8n
+  // workflow that drafts the property ad. Never blocks or fails the PATCH
+  // itself if the webhook is unreachable or unconfigured.
+  if (
+    data.listing_type === "sales" &&
+    data.status === "photographed" &&
+    existing.status !== "photographed" &&
+    process.env.PHOTOGRAPHED_WEBHOOK_URL
+  ) {
+    try {
+      await fetch(process.env.PHOTOGRAPHED_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(toProperty(data)),
+      });
+    } catch (err) {
+      console.error("photographed webhook failed", err);
+    }
+  }
+
   return NextResponse.json(toProperty(data));
 });

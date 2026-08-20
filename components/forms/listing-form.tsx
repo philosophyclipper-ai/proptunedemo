@@ -13,6 +13,9 @@ const PRICE_QUALIFIERS = [
   { value: "poa", label: "POA" },
 ];
 const SALES_STATUSES = [
+  ["valued", "Valued"],
+  ["instructed", "Instructed"],
+  ["photographed", "Photographed"],
   ["available", "Available"],
   ["under_offer", "Under Offer"],
   ["sold", "Sold"],
