@@ -57,7 +57,7 @@ export function ListingForm(props: Props) {
 
   const action =
     props.mode === "create"
-      ? createListing
+      ? createListing.bind(null, props.listingType)
       : updateListing.bind(null, property!.ref, props.listingType);
 
   const { state, formAction, pending } = useMutationForm(action, props.onSuccess);

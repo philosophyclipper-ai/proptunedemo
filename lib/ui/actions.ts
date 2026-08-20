@@ -41,13 +41,11 @@ async function resolveContact(
 }
 
 export async function createListing(
+  listingType: "sales" | "lettings",
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
   try {
-    const listingType = str(formData, "listing_type") as "sales" | "lettings" | undefined;
-    if (!listingType) throw new Error("listing_type is required");
-
     const vendorContactId = await resolveContact(
       formData,
       "vendor",
