@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireApiContext } from "@/lib/api/context";
 import { withErrorHandling } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
@@ -87,8 +88,59 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
 
   if (error) throw new ApiError("validation_failed", error.message);
 
+  await logAuditNotes(supabase, agencyId, existing, updates, data.id);
+
   return NextResponse.json(toProperty(data));
 });
+
+// Status and price changes have no dedicated history table — they're
+// folded into the same notes/timeline pipe as everything else, as
+// system-authored entries, so the property timeline is a genuine audit
+// trail rather than missing its most basic events.
+const humanize = (value: string) => value.replace(/_/g, " ");
+const money = (value: number) => `£${value.toLocaleString("en-GB")}`;
+
+async function logAuditNotes(
+  supabase: SupabaseClient,
+  agencyId: string,
+  existing: Record<string, unknown>,
+  updates: Record<string, unknown>,
+  propertyId: string
+) {
+  const entries: string[] = [];
+
+  if (updates.status !== undefined && updates.status !== existing.status) {
+    entries.push(
+      `Status changed from ${humanize(existing.status as string)} to ${humanize(updates.status as string)}`
+    );
+  }
+  if (updates.asking_price !== undefined && updates.asking_price !== existing.asking_price) {
+    entries.push(
+      existing.asking_price == null
+        ? `Asking price set to ${money(updates.asking_price as number)}`
+        : `Asking price changed from ${money(existing.asking_price as number)} to ${money(updates.asking_price as number)}`
+    );
+  }
+  if (updates.rent_amount !== undefined && updates.rent_amount !== existing.rent_amount) {
+    entries.push(
+      existing.rent_amount == null
+        ? `Rent set to ${money(updates.rent_amount as number)}`
+        : `Rent changed from ${money(existing.rent_amount as number)} to ${money(updates.rent_amount as number)}`
+    );
+  }
+
+  if (entries.length === 0) return;
+
+  await supabase.from("notes").insert(
+    entries.map((body) => ({
+      agency_id: agencyId,
+      entity_type: "property",
+      entity_id: propertyId,
+      author_type: "user",
+      body,
+    }))
+  );
+}
 
 // UI only — deletes the listing and everything hanging off it. Voice/n8n
 // never get this; a property going away entirely is a negotiator decision,

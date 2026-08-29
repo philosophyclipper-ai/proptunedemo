@@ -379,6 +379,29 @@ export async function addNoteAction(
   }
 }
 
+// Properties never expose their internal uuid, so notes on a property are
+// added via /properties/:ref/notes (ref -> id resolved server-side) rather
+// than the generic entity_id-based /notes endpoint addNoteAction uses.
+export async function addPropertyNoteAction(
+  propertyRef: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const body = str(formData, "body");
+    if (!body) throw new Error("Note body is required");
+
+    const result = await apiPost(`/api/v1/properties/${propertyRef}/notes`, { body });
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
 export async function updateViewingAction(
   viewingId: string,
   revalidatePaths: string[],

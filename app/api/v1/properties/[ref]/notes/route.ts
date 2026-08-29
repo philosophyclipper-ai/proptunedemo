@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiContext } from "@/lib/api/context";
 import { withErrorHandling } from "@/lib/api/handler";
+import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
 import { getPropertyByRef } from "@/lib/api/lookups";
 
@@ -33,4 +34,42 @@ export const GET = withErrorHandling(async (request, { params }) => {
   }));
 
   return NextResponse.json({ notes });
+});
+
+// UI only. Same ref -> id resolution as GET — lets the negotiator add a
+// free-text note from the property page without the browser ever needing
+// the property's internal uuid.
+export const POST = withErrorHandling(async (request, { params }) => {
+  const { ref } = await params;
+  const { supabase, agencyId } = await requireApiContext(request);
+  const idempotencyKey = request.headers.get("idempotency-key");
+  const property = await getPropertyByRef(supabase, agencyId, ref);
+  const body = await request.json();
+
+  if (!body.body) throw new ApiError("validation_failed", "body is required");
+
+  const { status, body: responseBody } = await withIdempotency(
+    supabase,
+    agencyId,
+    "POST /properties/:ref/notes",
+    idempotencyKey,
+    async () => {
+      const { data, error } = await supabase
+        .from("notes")
+        .insert({
+          agency_id: agencyId,
+          entity_type: "property",
+          entity_id: property.id,
+          author_type: "user",
+          body: body.body,
+        })
+        .select("id, author_type, author_user_id, body, created_at")
+        .single();
+
+      if (error) throw new ApiError("validation_failed", error.message);
+      return { status: 201, body: data };
+    }
+  );
+
+  return NextResponse.json(responseBody, { status });
 });

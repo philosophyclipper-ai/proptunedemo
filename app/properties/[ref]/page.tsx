@@ -5,6 +5,7 @@ import {
   getOffers,
   getProperty,
   getPropertyNotes,
+  getPropertyTimeline,
   getUsers,
   getViewings,
 } from "@/lib/ui/api-client";
@@ -23,6 +24,8 @@ import { Pill } from "@/components/pill";
 import { PropertyTabs } from "@/components/property-tabs";
 import { EditListingButton } from "@/components/edit-listing-button";
 import { AddMaintenanceButton } from "@/components/add-maintenance-button";
+import { PropertyNotesButton } from "@/components/property-notes-button";
+import { Timeline } from "@/components/timeline";
 
 export default async function PropertyDetailPage({
   params,
@@ -34,7 +37,7 @@ export default async function PropertyDetailPage({
   const property = await getProperty(ref).catch(() => null);
   if (!property) notFound();
 
-  const [notesResult, viewingsResult, offersResult, vendorContact, { users }] =
+  const [notesResult, viewingsResult, offersResult, vendorContact, { users }, { timeline }] =
     await Promise.all([
       getPropertyNotes(ref),
       getViewings({ property_ref: ref }),
@@ -43,6 +46,7 @@ export default async function PropertyDetailPage({
         ? getContact(property.vendor_contact_id).catch(() => null)
         : Promise.resolve(null),
       getUsers(),
+      getPropertyTimeline(ref),
     ]);
   const negotiator = users.find((u) => u.id === property.negotiator_id);
 
@@ -87,6 +91,7 @@ export default async function PropertyDetailPage({
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Pill tone={propertyStatusTone(property.status)} label={titleCase(property.status)} />
+          <PropertyNotesButton propertyRef={property.ref} notes={notesResult.notes} />
           {isLettings && <AddMaintenanceButton propertyRef={property.ref} />}
           <EditListingButton
             property={property}
@@ -237,6 +242,11 @@ export default async function PropertyDetailPage({
           </section>
         </div>
       </div>
+
+      <section className="mt-6">
+        <h2 className="mb-3 font-heading text-lg font-semibold text-navy-950">Timeline</h2>
+        <Timeline entries={timeline} />
+      </section>
     </div>
   );
 }

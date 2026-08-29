@@ -127,6 +127,10 @@ export async function getContactTimeline(id: string) {
   return apiGet<{ timeline: TimelineEntry[] }>(`/api/v1/timeline/contact/${id}`);
 }
 
+export async function getPropertyTimeline(ref: string) {
+  return apiGet<{ timeline: TimelineEntry[] }>(`/api/v1/timeline/property/${ref}`);
+}
+
 export async function getViewings(params: { property_ref?: string } = {}) {
   return apiGet<{ viewings: Viewing[] }>("/api/v1/viewings", params);
 }
