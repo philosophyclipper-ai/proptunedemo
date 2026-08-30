@@ -2,6 +2,7 @@ export type ApiErrorCode =
   | "unauthorized"
   | "not_found"
   | "validation_failed"
+  | "bad_request"
   | "conflict"
   | "rate_limited";
 
@@ -24,6 +25,8 @@ function statusForCode(code: ApiErrorCode): number {
       return 404;
     case "validation_failed":
       return 422;
+    case "bad_request":
+      return 400;
     case "conflict":
       return 409;
     case "rate_limited":

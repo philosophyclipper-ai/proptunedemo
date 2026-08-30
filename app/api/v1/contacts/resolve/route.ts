@@ -24,7 +24,9 @@ type ContactRow = { id: string; name: string; roles: string[] };
 
 // Voice-facing: whoever's on the phone is not certainly the contact
 // themselves, so this deliberately omits surname, email and the full phone
-// number — first name only. Don't add them back.
+// number — first name only. Kept separate from lib/api/embed's
+// toEmbeddedContact (which uses `contact_id`, not `id`) — this endpoint's
+// response shape is already relied on and isn't changing.
 function toResolveContact(row: ContactRow) {
   return {
     id: row.id,
@@ -71,19 +73,19 @@ export const GET = withErrorHandling(async (request) => {
     });
   }
 
-  // vendor_contact_id stays the primary/first vendor link, untouched.
-  // property_contacts covers additional vendors (joint owners) on top of
-  // it — both are equally authoritative for "is this the seller".
-  const { data: coVendors, error: coVendorError } = await supabase
-    .from("property_contacts")
-    .select("contact_id")
+  // vendors/vendor_contacts is authoritative for property ownership —
+  // covers both the single-owner case and joint owners in one place, no
+  // need to also check property_contacts or vendor_contact_id separately.
+  const { data: vendorRecord, error: vendorError } = await supabase
+    .from("vendors")
+    .select("vendor_contacts(contact_id)")
     .eq("agency_id", agencyId)
     .eq("property_id", property.id)
-    .eq("role", "vendor");
-  if (coVendorError) throw new ApiError("validation_failed", coVendorError.message);
+    .maybeSingle();
+  if (vendorError) throw new ApiError("validation_failed", vendorError.message);
 
   const vendorIds = new Set(
-    [property.vendor_contact_id, ...(coVendors ?? []).map((r) => r.contact_id)].filter(Boolean)
+    ((vendorRecord?.vendor_contacts ?? []) as { contact_id: string }[]).map((r) => r.contact_id)
   );
 
   const { data: viewings, error: viewingsError } = await supabase

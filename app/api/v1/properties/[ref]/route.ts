@@ -5,10 +5,15 @@ import { withErrorHandling } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
 import { toProperty } from "@/lib/api/serializers";
 import { getPropertyByRef } from "@/lib/api/lookups";
+import { attachPropertyVendorsEmbed, parseEmbed, withEmbed } from "@/lib/api/embed";
+
+const PROPERTY_EMBEDS = ["vendors"];
 
 export const GET = withErrorHandling(async (request, { params }) => {
   const { ref } = await params;
   const { supabase, agencyId } = await requireApiContext(request);
+  const { searchParams } = new URL(request.url);
+  const embeds = parseEmbed(searchParams, PROPERTY_EMBEDS);
 
   const { data, error } = await supabase
     .from("properties")
@@ -19,6 +24,11 @@ export const GET = withErrorHandling(async (request, { params }) => {
 
   if (error) throw new ApiError("validation_failed", error.message);
   if (!data) throw new ApiError("not_found", `No property with ref ${ref}`);
+
+  if (embeds.includes("vendors")) {
+    const entry = await attachPropertyVendorsEmbed(supabase, agencyId, data.id);
+    return NextResponse.json(withEmbed(toProperty(data), entry));
+  }
   return NextResponse.json(toProperty(data));
 });
 

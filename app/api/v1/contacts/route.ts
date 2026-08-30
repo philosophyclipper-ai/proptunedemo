@@ -6,6 +6,9 @@ import { ApiError } from "@/lib/api/errors";
 import { toContact } from "@/lib/api/serializers";
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
 import { phonesMatch } from "@/lib/api/phone";
+import { attachContactEmbeds, parseEmbed, withEmbed } from "@/lib/api/embed";
+
+const CONTACT_EMBEDS = ["vendors", "viewings", "offers"];
 
 export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
@@ -14,6 +17,13 @@ export const GET = withErrorHandling(async (request) => {
   const q = searchParams.get("q");
   const ids = searchParams.get("ids");
   const cursor = searchParams.get("cursor");
+  const embeds = parseEmbed(searchParams, CONTACT_EMBEDS);
+
+  async function serialize(rows: { id: string }[]) {
+    const embedMap =
+      embeds.length > 0 ? await attachContactEmbeds(supabase, agencyId, rows, embeds) : new Map();
+    return rows.map((r) => withEmbed(toContact(r), embedMap.get(r.id)));
+  }
 
   let query = supabase
     .from("contacts")
@@ -27,7 +37,7 @@ export const GET = withErrorHandling(async (request) => {
     const idList = ids.split(",").filter(Boolean);
     const { data, error } = await query.in("id", idList);
     if (error) throw new ApiError("validation_failed", error.message);
-    return NextResponse.json({ contacts: (data ?? []).map(toContact), next_cursor: null });
+    return NextResponse.json({ contacts: await serialize(data ?? []), next_cursor: null });
   }
 
   // Real numbers in this CRM are genuinely inconsistent in format
@@ -41,7 +51,7 @@ export const GET = withErrorHandling(async (request) => {
     const matches = (data ?? []).filter(
       (c) => phonesMatch(c.phone_primary as string, phone) || phonesMatch(c.phone_secondary as string, phone)
     );
-    return NextResponse.json({ contacts: matches.map(toContact), next_cursor: null });
+    return NextResponse.json({ contacts: await serialize(matches), next_cursor: null });
   }
   if (q) {
     // Voice/n8n use the exact-match `phone` param above; `q` is the UI's
@@ -75,7 +85,7 @@ export const GET = withErrorHandling(async (request) => {
       : null;
 
   return NextResponse.json({
-    contacts: results.map(toContact),
+    contacts: await serialize(results),
     next_cursor: nextCursor,
   });
 });
