@@ -28,6 +28,20 @@ export function toEmbeddedContact(row: { id: string; name: string; roles: string
   return { contact_id: row.id, first_name: row.name.split(" ")[0], roles: row.roles };
 }
 
+// The single composition used everywhere an embedded record needs a
+// display address — unit/flat (address_line2) leads, then the street
+// (address_line1), matching how this CRM writes an address out for a
+// person to read. One implementation so different embed types can't drift
+// from each other. Missing/unresolvable property -> "", never null and
+// never the ref as a fallback — a voice agent reads "" as "no address" and
+// falls back to the ref itself, which it already has.
+export function formatEmbeddedAddress(
+  property: { address_line1: string; address_line2: string | null } | null | undefined
+): string {
+  if (!property) return "";
+  return [property.address_line2, property.address_line1].filter(Boolean).join(", ");
+}
+
 function cap<T>(items: T[]): { items: T[]; truncated: boolean } {
   if (items.length <= EMBED_CAP) return { items, truncated: false };
   return { items: items.slice(0, EMBED_CAP), truncated: true };
@@ -76,7 +90,9 @@ export async function attachContactEmbeds(
   if (embeds.includes("vendors")) {
     const { data, error } = await supabase
       .from("vendor_contacts")
-      .select("contact_id, vendors(id, properties(ref, address_line1, address_line2, status))")
+      .select(
+        "contact_id, vendors(id, properties(ref, address_line1, address_line2, postcode, status))"
+      )
       .eq("agency_id", agencyId)
       .in("contact_id", ids);
     if (error) throw new ApiError("validation_failed", error.message);
@@ -85,15 +101,22 @@ export async function attachContactEmbeds(
     for (const row of data ?? []) {
       const v = row.vendors as unknown as {
         id: string;
-        properties: { ref: string; address_line1: string; address_line2: string | null; status: string } | null;
+        properties: {
+          ref: string;
+          address_line1: string;
+          address_line2: string | null;
+          postcode: string;
+          status: string;
+        } | null;
       } | null;
-      if (!v?.properties) continue;
+      if (!v) continue;
       const list = byContact.get(row.contact_id as string) ?? [];
       list.push({
         vendor_id: v.id,
-        property_ref: v.properties.ref,
-        address: [v.properties.address_line1, v.properties.address_line2].filter(Boolean).join(", "),
-        status: v.properties.status,
+        property_ref: v.properties?.ref ?? null,
+        address: formatEmbeddedAddress(v.properties),
+        postcode: v.properties?.postcode ?? "",
+        status: v.properties?.status ?? null,
       });
       byContact.set(row.contact_id as string, list);
     }
@@ -103,7 +126,7 @@ export async function attachContactEmbeds(
   if (embeds.includes("viewings")) {
     const { data, error } = await supabase
       .from("viewings")
-      .select("id, contact_id, status, scheduled_at, properties(ref)")
+      .select("id, contact_id, status, scheduled_at, properties(ref, address_line1, address_line2, postcode)")
       .eq("agency_id", agencyId)
       .in("contact_id", ids)
       .neq("status", "cancelled");
@@ -111,10 +134,18 @@ export async function attachContactEmbeds(
 
     const byContact = new Map<string, unknown[]>();
     for (const row of data ?? []) {
+      const property = row.properties as unknown as {
+        ref: string;
+        address_line1: string;
+        address_line2: string | null;
+        postcode: string;
+      } | null;
       const list = byContact.get(row.contact_id as string) ?? [];
       list.push({
         viewing_id: row.id,
-        property_ref: (row.properties as unknown as { ref: string } | null)?.ref ?? null,
+        property_ref: property?.ref ?? null,
+        address: formatEmbeddedAddress(property),
+        postcode: property?.postcode ?? "",
         status: row.status,
         scheduled_at: row.scheduled_at,
       });
