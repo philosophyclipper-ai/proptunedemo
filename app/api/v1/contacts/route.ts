@@ -5,6 +5,7 @@ import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
 import { toContact } from "@/lib/api/serializers";
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
+import { phonesMatch } from "@/lib/api/phone";
 
 export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
@@ -29,8 +30,18 @@ export const GET = withErrorHandling(async (request) => {
     return NextResponse.json({ contacts: (data ?? []).map(toContact), next_cursor: null });
   }
 
+  // Real numbers in this CRM are genuinely inconsistent in format
+  // (+447700900202 / 07700900202 / 07700 900202 can all be the same
+  // contact) — matching normalises rather than relying on exact string
+  // equality. This can only find more than literal equality did before,
+  // never fewer, so it's a strict improvement for every existing caller.
   if (phone) {
-    query = query.or(`phone_primary.eq.${phone},phone_secondary.eq.${phone}`);
+    const { data, error } = await query;
+    if (error) throw new ApiError("validation_failed", error.message);
+    const matches = (data ?? []).filter(
+      (c) => phonesMatch(c.phone_primary as string, phone) || phonesMatch(c.phone_secondary as string, phone)
+    );
+    return NextResponse.json({ contacts: matches.map(toContact), next_cursor: null });
   }
   if (q) {
     // Voice/n8n use the exact-match `phone` param above; `q` is the UI's
