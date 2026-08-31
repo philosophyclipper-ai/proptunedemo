@@ -151,6 +151,25 @@ export const POST = withErrorHandling(async (request) => {
         return { status: 200, body: toContact(data) };
       }
 
+      // Not an exact phone_primary match (handled above), but could still
+      // be the same person: their number stored differently pre-dating
+      // normalisation, on someone else's phone_secondary, or the same
+      // email. Created either way — don't auto-merge, a human/agent
+      // decides — but flagged so it isn't silently a second row nobody
+      // notices.
+      const { data: candidates } = await supabase
+        .from("contacts")
+        .select("id, phone_primary, phone_secondary, email")
+        .eq("agency_id", agencyId);
+      const duplicateIds = (candidates ?? [])
+        .filter(
+          (c) =>
+            phonesMatch(c.phone_primary as string, phonePrimary) ||
+            phonesMatch(c.phone_secondary as string, phonePrimary) ||
+            (body.email && c.email && String(c.email).toLowerCase() === String(body.email).toLowerCase())
+        )
+        .map((c) => c.id as string);
+
       const { data, error } = await supabase
         .from("contacts")
         .insert({
@@ -168,7 +187,10 @@ export const POST = withErrorHandling(async (request) => {
         .single();
 
       if (error) throw new ApiError("validation_failed", error.message);
-      return { status: 201, body: toContact(data) };
+      const contact = toContact(data);
+      return duplicateIds.length > 0
+        ? { status: 201, body: { ...contact, probable_duplicate: true, duplicate_of: duplicateIds } }
+        : { status: 201, body: contact };
     }
   );
 
