@@ -6,6 +6,7 @@ import { ApiError } from "@/lib/api/errors";
 import { toProperty } from "@/lib/api/serializers";
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
 import { generatePropertyRef } from "@/lib/api/generate-ref";
+import { ensureVendorContact } from "@/lib/api/lookups";
 
 export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
@@ -142,6 +143,11 @@ export const POST = withErrorHandling(async (request) => {
           error.message
         );
       }
+
+      if (insertPayload.vendor_contact_id) {
+        await ensureVendorContact(supabase, agencyId, data.id, insertPayload.vendor_contact_id);
+      }
+
       return { status: 201, body: toProperty(data) };
     }
   );

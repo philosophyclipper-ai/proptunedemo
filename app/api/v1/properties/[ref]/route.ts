@@ -4,7 +4,7 @@ import { requireApiContext } from "@/lib/api/context";
 import { withErrorHandling } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
 import { toProperty } from "@/lib/api/serializers";
-import { getPropertyByRef } from "@/lib/api/lookups";
+import { ensureVendorContact, getPropertyByRef } from "@/lib/api/lookups";
 import { attachPropertyVendorsEmbed, parseEmbed, withEmbed } from "@/lib/api/embed";
 
 const PROPERTY_EMBEDS = ["vendors"];
@@ -99,6 +99,14 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
   if (error) throw new ApiError("validation_failed", error.message);
 
   await logAuditNotes(supabase, agencyId, existing, updates, data.id);
+
+  // vendors/vendor_contacts is authoritative for ownership; this form only
+  // knows a single vendor_contact_id, so a change here means "make sure
+  // this contact is on the vendor record", not "replace" — see
+  // ensureVendorContact's own comment for why it never removes anyone.
+  if (updates.vendor_contact_id) {
+    await ensureVendorContact(supabase, agencyId, data.id, updates.vendor_contact_id as string);
+  }
 
   return NextResponse.json(toProperty(data));
 });
@@ -201,6 +209,17 @@ export const DELETE = withErrorHandling(async (request, { params }) => {
   await supabase
     .from("valuations")
     .update({ property_id: null })
+    .eq("agency_id", agencyId)
+    .eq("property_id", propertyId);
+
+  // vendors has no ON DELETE CASCADE from properties (vendor_contacts
+  // cascades from vendors, so deleting the vendors row is enough) —
+  // without this, deleting a property with a vendor record fails outright
+  // on the FK instead of cleaning up. property_contacts has the same gap.
+  await supabase.from("vendors").delete().eq("agency_id", agencyId).eq("property_id", propertyId);
+  await supabase
+    .from("property_contacts")
+    .delete()
     .eq("agency_id", agencyId)
     .eq("property_id", propertyId);
 
