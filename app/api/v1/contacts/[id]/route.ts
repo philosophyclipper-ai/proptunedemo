@@ -7,7 +7,7 @@ import { requireContactById } from "@/lib/api/lookups";
 import { attachContactEmbeds, parseEmbed, withEmbed } from "@/lib/api/embed";
 import { toE164Phone } from "@/lib/api/phone";
 
-const CONTACT_EMBEDS = ["vendors", "viewings", "offers"];
+const CONTACT_EMBEDS = ["vendors", "viewings", "offers", "property_contacts"];
 
 export const GET = withErrorHandling(async (request, { params }) => {
   const { id } = await params;

@@ -177,6 +177,34 @@ export async function attachContactEmbeds(
     for (const [contactId, list] of byContact) record(contactId, "offers", list);
   }
 
+  if (embeds.includes("property_contacts")) {
+    const { data, error } = await supabase
+      .from("property_contacts")
+      .select("contact_id, role, properties(ref, address_line1, address_line2, postcode)")
+      .eq("agency_id", agencyId)
+      .in("contact_id", ids);
+    if (error) throw new ApiError("validation_failed", error.message);
+
+    const byContact = new Map<string, unknown[]>();
+    for (const row of data ?? []) {
+      const property = row.properties as unknown as {
+        ref: string;
+        address_line1: string;
+        address_line2: string | null;
+        postcode: string;
+      } | null;
+      const list = byContact.get(row.contact_id as string) ?? [];
+      list.push({
+        property_ref: property?.ref ?? null,
+        role: row.role,
+        address: formatEmbeddedAddress(property),
+        postcode: property?.postcode ?? "",
+      });
+      byContact.set(row.contact_id as string, list);
+    }
+    for (const [contactId, list] of byContact) record(contactId, "property_contacts", list);
+  }
+
   return result;
 }
 

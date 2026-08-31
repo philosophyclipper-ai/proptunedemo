@@ -8,7 +8,7 @@ import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
 import { phonesMatch, toE164Phone } from "@/lib/api/phone";
 import { attachContactEmbeds, parseEmbed, withEmbed } from "@/lib/api/embed";
 
-const CONTACT_EMBEDS = ["vendors", "viewings", "offers"];
+const CONTACT_EMBEDS = ["vendors", "viewings", "offers", "property_contacts"];
 
 export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
