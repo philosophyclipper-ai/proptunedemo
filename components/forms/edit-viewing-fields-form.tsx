@@ -3,14 +3,9 @@
 import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { updateViewingAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
+import { utcIsoToLondonWallTimeInputValue } from "@/lib/ui/timezone";
+import { formatDateTime } from "@/lib/ui/format";
 import type { Viewing } from "@/lib/ui/types";
-
-function toLocalInputValue(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 export function EditViewingFieldsForm({
   viewing,
@@ -52,15 +47,14 @@ export function EditViewingFieldsForm({
           <input
             name="scheduled_at"
             type="datetime-local"
-            defaultValue={toLocalInputValue(viewing.scheduled_at)}
+            defaultValue={utcIsoToLondonWallTimeInputValue(viewing.scheduled_at)}
             className={inputClass}
           />
         </Field>
       </div>
       {viewing.proposed_times && viewing.proposed_times.length > 0 && (
         <p className="text-xs text-ink-faint">
-          Proposed times on file:{" "}
-          {viewing.proposed_times.map((t) => new Date(t).toLocaleString("en-GB")).join(", ")}
+          Proposed times on file: {viewing.proposed_times.map(formatDateTime).join(", ")}
         </p>
       )}
       {state.status === "error" && <p className="text-sm text-red-600">{state.message}</p>}

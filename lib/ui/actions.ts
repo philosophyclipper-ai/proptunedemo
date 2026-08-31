@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { apiDelete, apiPatch, apiPost } from "@/lib/ui/mutations";
 import type { Contact, Property, Viewing } from "@/lib/ui/types";
 import type { ActionState } from "@/lib/ui/action-state";
+import { londonWallTimeToUtcIso } from "@/lib/ui/timezone";
 
 function str(formData: FormData, key: string): string | undefined {
   const value = formData.get(key);
@@ -184,9 +185,9 @@ export async function createViewingAction(
       contact_id: contactId,
       status: formData.get("confirmed") === "on" ? "confirmed" : "requested",
     };
-    if (scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
+    if (scheduledAt) payload.scheduled_at = londonWallTimeToUtcIso(scheduledAt);
     if (proposed.length > 0) {
-      payload.proposed_times = proposed.map((t) => new Date(t).toISOString());
+      payload.proposed_times = proposed.map(londonWallTimeToUtcIso);
     }
     if (listingType === "sales") {
       payload.mortgage_status = str(formData, "mortgage_status") ?? null;
@@ -421,7 +422,7 @@ export async function updateViewingAction(
     } else {
       payload.status = str(formData, "status");
     }
-    if (scheduledAt) payload.scheduled_at = new Date(scheduledAt).toISOString();
+    if (scheduledAt) payload.scheduled_at = londonWallTimeToUtcIso(scheduledAt);
 
     const result = await apiPatch(`/api/v1/viewings/${viewingId}`, payload);
     if (!result.ok) throw new Error(result.error);

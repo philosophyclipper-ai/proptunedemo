@@ -41,12 +41,20 @@ export function formatRent(property: {
   return property.rent_frequency === "weekly" ? `${amount} pw` : `${amount} pcm`;
 }
 
+// Explicit Europe/London everywhere a stored UTC instant is displayed —
+// without it, toLocaleString falls back to the runtime's own default
+// timezone, which is Europe/London on this dev machine (masking drift) but
+// UTC on Vercel. Pinning this is what keeps the display side honest once
+// the write side (lib/ui/timezone.ts) is correctly London-aware too.
+const LONDON_TZ = "Europe/London";
+
 export function formatDate(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: LONDON_TZ,
   });
 }
 
@@ -57,6 +65,7 @@ export function formatDateTime(iso: string | null): string {
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: LONDON_TZ,
   });
 }
 
@@ -64,6 +73,7 @@ export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: LONDON_TZ,
   });
 }
 
