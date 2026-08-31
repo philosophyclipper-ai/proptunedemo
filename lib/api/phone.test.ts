@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizePhone, phonesMatch } from "@/lib/api/phone";
+import { normalizePhone, phonesMatch, toE164Phone } from "@/lib/api/phone";
 
 describe("phonesMatch", () => {
   it("matches the three equivalent forms of the same UK mobile number", () => {
@@ -18,5 +18,30 @@ describe("phonesMatch", () => {
     expect(normalizePhone("White")).toBe("");
     expect(phonesMatch("White", "White")).toBe(false);
     expect(phonesMatch("White", "+447700900202")).toBe(false);
+  });
+});
+
+describe("toE164Phone", () => {
+  it("normalises any reasonable UK shape to +44", () => {
+    expect(toE164Phone("+447700900202")).toEqual({ value: "+447700900202" });
+    expect(toE164Phone("07700900202")).toEqual({ value: "+447700900202" });
+    expect(toE164Phone("07700 900202")).toEqual({ value: "+447700900202" });
+  });
+
+  it("accepts an already-valid non-UK E.164 number as-is", () => {
+    expect(toE164Phone("+14155551234")).toEqual({ value: "+14155551234" });
+  });
+
+  it("rejects a surname typed into the phone field", () => {
+    expect(toE164Phone("White")).toHaveProperty("error");
+  });
+
+  it("rejects an incomplete/short number", () => {
+    expect(toE164Phone("08001111")).toHaveProperty("error");
+  });
+
+  it("rejects empty input", () => {
+    expect(toE164Phone("")).toHaveProperty("error");
+    expect(toE164Phone("   ")).toHaveProperty("error");
   });
 });

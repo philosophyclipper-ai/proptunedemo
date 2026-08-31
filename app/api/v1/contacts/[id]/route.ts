@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/api/errors";
 import { toContact } from "@/lib/api/serializers";
 import { requireContactById } from "@/lib/api/lookups";
 import { attachContactEmbeds, parseEmbed, withEmbed } from "@/lib/api/embed";
+import { toE164Phone } from "@/lib/api/phone";
 
 const CONTACT_EMBEDS = ["vendors", "viewings", "offers"];
 
@@ -40,6 +41,17 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     "property_ownership_status",
   ]) {
     if (body[field] !== undefined) updates[field] = body[field];
+  }
+
+  if (updates.phone_primary !== undefined) {
+    const result = toE164Phone(updates.phone_primary as string);
+    if ("error" in result) throw new ApiError("validation_failed", result.error);
+    updates.phone_primary = result.value;
+  }
+  if (updates.phone_secondary !== undefined && updates.phone_secondary !== null) {
+    const result = toE164Phone(updates.phone_secondary as string);
+    if ("error" in result) throw new ApiError("validation_failed", result.error);
+    updates.phone_secondary = result.value;
   }
 
   const { data, error } = await supabase

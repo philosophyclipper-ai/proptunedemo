@@ -5,7 +5,7 @@ import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
 import { toContact } from "@/lib/api/serializers";
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
-import { phonesMatch } from "@/lib/api/phone";
+import { phonesMatch, toE164Phone } from "@/lib/api/phone";
 import { attachContactEmbeds, parseEmbed, withEmbed } from "@/lib/api/embed";
 
 const CONTACT_EMBEDS = ["vendors", "viewings", "offers"];
@@ -99,17 +99,32 @@ export const POST = withErrorHandling(async (request) => {
     throw new ApiError("validation_failed", "name and phone_primary are required");
   }
 
+  const primaryResult = toE164Phone(body.phone_primary);
+  if ("error" in primaryResult) throw new ApiError("validation_failed", primaryResult.error);
+  const phonePrimary = primaryResult.value;
+
+  let phoneSecondary: string | undefined;
+  if (body.phone_secondary) {
+    const secondaryResult = toE164Phone(body.phone_secondary);
+    if ("error" in secondaryResult) throw new ApiError("validation_failed", secondaryResult.error);
+    phoneSecondary = secondaryResult.value;
+  }
+
   const { status, body: responseBody } = await withIdempotency(
     supabase,
     agencyId,
     "POST /contacts",
     idempotencyKey,
     async () => {
+      // Matching on the normalised value (not the raw input) means an
+      // existing contact stored as +447700900202 is correctly found even
+      // if this call sent 07700900202 — previously a literal match, which
+      // silently missed that case and created a duplicate instead.
       const { data: existing } = await supabase
         .from("contacts")
         .select("*")
         .eq("agency_id", agencyId)
-        .eq("phone_primary", body.phone_primary)
+        .eq("phone_primary", phonePrimary)
         .maybeSingle();
 
       if (existing) {
@@ -121,7 +136,7 @@ export const POST = withErrorHandling(async (request) => {
           .update({
             name: body.name ?? existing.name,
             roles: mergedRoles,
-            phone_secondary: body.phone_secondary ?? existing.phone_secondary,
+            phone_secondary: phoneSecondary ?? existing.phone_secondary,
             email: body.email ?? existing.email,
             company: body.company ?? existing.company,
             mortgage_status: body.mortgage_status ?? existing.mortgage_status,
@@ -142,8 +157,8 @@ export const POST = withErrorHandling(async (request) => {
           agency_id: agencyId,
           name: body.name,
           roles: body.roles ?? [],
-          phone_primary: body.phone_primary,
-          phone_secondary: body.phone_secondary ?? null,
+          phone_primary: phonePrimary,
+          phone_secondary: phoneSecondary ?? null,
           email: body.email ?? null,
           company: body.company ?? null,
           mortgage_status: body.mortgage_status ?? null,

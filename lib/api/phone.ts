@@ -33,3 +33,33 @@ export function phonesMatch(a: string | null | undefined, b: string | null | und
   if (na.length < 7 || nb.length < 7) return na === nb;
   return na.slice(-10) === nb.slice(-10);
 }
+
+// Validates and normalises a phone number on entry, reusing the same
+// normalizePhone rules as lookup so a number that gets accepted here is
+// guaranteed to be findable later. Used client- and server-side — pure
+// function, no framework dependency, safe in either bundle.
+//
+// A UK number in any reasonable shape (+447700900202, 07700900202,
+// "07700 900202") normalises to exactly 10 digits and is stored as
+// +44<10 digits>. Anything already in valid E.164 form for another
+// country is accepted as-is — there are no real non-UK numbers in this
+// CRM's data today, so there's nothing to reconcile a "flag for review"
+// state against; if that changes, this is the one place to add it.
+// Anything else (empty, too short, non-numeric — the exact shape of the
+// "White" bug) is rejected outright.
+export function toE164Phone(raw: string): { value: string } | { error: string } {
+  const trimmed = raw.trim();
+  const ERROR = "Enter a valid UK phone number (e.g. 07700 900202) or a full international number starting with +";
+
+  if (!trimmed) return { error: ERROR };
+
+  if (trimmed.startsWith("+") && !trimmed.startsWith("+44")) {
+    return /^\+[1-9]\d{7,14}$/.test(trimmed) ? { value: trimmed } : { error: ERROR };
+  }
+
+  const normalized = normalizePhone(trimmed);
+  if (normalized.length === 10 && /^[1-9]/.test(normalized)) {
+    return { value: `+44${normalized}` };
+  }
+  return { error: ERROR };
+}

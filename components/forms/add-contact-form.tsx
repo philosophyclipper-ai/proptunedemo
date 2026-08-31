@@ -3,6 +3,7 @@
 import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { createContactAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
+import { PhoneField } from "@/components/forms/phone-field";
 
 const ROLE_OPTIONS: Record<"sales" | "lettings", { value: string; label: string }[]> = {
   sales: [
@@ -34,9 +35,7 @@ export function AddContactForm({
         <Field label="Name">
           <input name="name" required className={inputClass} />
         </Field>
-        <Field label="Phone">
-          <input name="phone_primary" required className={inputClass} />
-        </Field>
+        <PhoneField name="phone_primary" label="Phone" required />
         <Field label="Email">
           <input name="email" type="email" className={inputClass} />
         </Field>

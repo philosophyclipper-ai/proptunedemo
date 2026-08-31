@@ -3,6 +3,7 @@
 import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { updateContactAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
+import { PhoneField } from "@/components/forms/phone-field";
 import { MORTGAGE_STATUS_OPTIONS, PROPERTY_OWNERSHIP_STATUS_OPTIONS } from "@/lib/ui/buyer-position";
 import type { Contact } from "@/lib/ui/types";
 
@@ -28,14 +29,7 @@ export function QuickEditContactForm({
         <Field label="Name">
           <input name="name" required defaultValue={contact.name} className={inputClass} />
         </Field>
-        <Field label="Phone">
-          <input
-            name="phone_primary"
-            required
-            defaultValue={contact.phone_primary}
-            className={inputClass}
-          />
-        </Field>
+        <PhoneField name="phone_primary" label="Phone" required defaultValue={contact.phone_primary} />
         <Field label="Email">
           <input
             name="email"
