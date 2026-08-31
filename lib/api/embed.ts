@@ -91,7 +91,7 @@ export async function attachContactEmbeds(
     const { data, error } = await supabase
       .from("vendor_contacts")
       .select(
-        "contact_id, vendors(id, properties(ref, address_line1, address_line2, postcode, status))"
+        "contact_id, vendors(id, properties(ref, address_line1, address_line2, postcode, status), vendor_contacts(count))"
       )
       .eq("agency_id", agencyId)
       .in("contact_id", ids);
@@ -108,6 +108,9 @@ export async function attachContactEmbeds(
           postcode: string;
           status: string;
         } | null;
+        // PostgREST's count-embed convention: a one-element array holding
+        // the aggregate, not the related rows themselves.
+        vendor_contacts: { count: number }[];
       } | null;
       if (!v) continue;
       const list = byContact.get(row.contact_id as string) ?? [];
@@ -117,6 +120,7 @@ export async function attachContactEmbeds(
         address: formatEmbeddedAddress(v.properties),
         postcode: v.properties?.postcode ?? "",
         status: v.properties?.status ?? null,
+        contact_count: v.vendor_contacts?.[0]?.count ?? 1,
       });
       byContact.set(row.contact_id as string, list);
     }
