@@ -1,8 +1,12 @@
 export type Contact = {
   id: string;
+  contact_id: string;
   name: string;
+  first_name: string;
+  last_name: string | null;
   roles: string[];
   phone_primary: string;
+  phone: string;
   phone_secondary: string | null;
   additional_numbers: string[];
   email: string | null;

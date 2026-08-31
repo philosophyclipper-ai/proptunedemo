@@ -24,12 +24,26 @@ function additionalContacts(row: Row) {
   return embedded.map((oc) => oc.contacts).filter((c): c is NonNullable<typeof c> => c != null);
 }
 
+// Best-effort only — `name` is one field (some contacts are companies, e.g.
+// "Grant & Fiona Ross Solicitors"), so this can't be the source of truth.
+// first_name/last_name below are a convenience alongside `name`, not a
+// replacement for it.
+function splitName(name: string): { first_name: string; last_name: string | null } {
+  const [first, ...rest] = name.trim().split(/\s+/);
+  return { first_name: first, last_name: rest.length > 0 ? rest.join(" ") : null };
+}
+
 export function toContact(row: Row) {
+  const { first_name, last_name } = splitName(row.name as string);
   return {
     id: row.id,
+    contact_id: row.id,
     name: row.name,
+    first_name,
+    last_name,
     roles: row.roles,
     phone_primary: row.phone_primary,
+    phone: row.phone_primary,
     phone_secondary: row.phone_secondary,
     additional_numbers: row.additional_numbers ?? [],
     email: row.email,
