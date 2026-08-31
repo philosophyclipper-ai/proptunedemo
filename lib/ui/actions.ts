@@ -334,6 +334,12 @@ export async function updateContactAction(
     if (formData.has("roles_editable")) {
       payload.roles = formData.getAll("roles").filter((r): r is string => typeof r === "string");
     }
+    if (formData.has("additional_numbers_editable")) {
+      payload.additional_numbers = (str(formData, "additional_numbers") ?? "")
+        .split(/[\n,]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
     // Only present when the form actually rendered these fields (contact
     // edit always does; the viewing/offer quick-edit only for sales) — an
     // absent marker means "not shown here", not "clear it".

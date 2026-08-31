@@ -4,6 +4,7 @@ export type Contact = {
   roles: string[];
   phone_primary: string;
   phone_secondary: string | null;
+  additional_numbers: string[];
   email: string | null;
   company: string | null;
   mortgage_status: MortgageStatus | null;

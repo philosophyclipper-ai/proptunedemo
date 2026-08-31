@@ -5,7 +5,7 @@ import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
 import { toContact } from "@/lib/api/serializers";
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
-import { phonesMatch, toE164Phone } from "@/lib/api/phone";
+import { contactMatchesPhone, toE164Phone } from "@/lib/api/phone";
 import { attachContactEmbeds, parseEmbed, withEmbed } from "@/lib/api/embed";
 
 const CONTACT_EMBEDS = ["vendors", "viewings", "offers", "property_contacts"];
@@ -48,9 +48,7 @@ export const GET = withErrorHandling(async (request) => {
   if (phone) {
     const { data, error } = await query;
     if (error) throw new ApiError("validation_failed", error.message);
-    const matches = (data ?? []).filter(
-      (c) => phonesMatch(c.phone_primary as string, phone) || phonesMatch(c.phone_secondary as string, phone)
-    );
+    const matches = (data ?? []).filter((c) => contactMatchesPhone(c, phone));
     return NextResponse.json({ contacts: await serialize(matches), next_cursor: null });
   }
   if (q) {
@@ -110,6 +108,15 @@ export const POST = withErrorHandling(async (request) => {
     phoneSecondary = secondaryResult.value;
   }
 
+  let additionalNumbers: string[] | undefined;
+  if (body.additional_numbers) {
+    additionalNumbers = (body.additional_numbers as string[]).map((n: string) => {
+      const result = toE164Phone(n);
+      if ("error" in result) throw new ApiError("validation_failed", result.error);
+      return result.value;
+    });
+  }
+
   const { status, body: responseBody } = await withIdempotency(
     supabase,
     agencyId,
@@ -137,6 +144,7 @@ export const POST = withErrorHandling(async (request) => {
             name: body.name ?? existing.name,
             roles: mergedRoles,
             phone_secondary: phoneSecondary ?? existing.phone_secondary,
+            additional_numbers: additionalNumbers ?? existing.additional_numbers,
             email: body.email ?? existing.email,
             company: body.company ?? existing.company,
             mortgage_status: body.mortgage_status ?? existing.mortgage_status,
@@ -159,13 +167,12 @@ export const POST = withErrorHandling(async (request) => {
       // notices.
       const { data: candidates } = await supabase
         .from("contacts")
-        .select("id, phone_primary, phone_secondary, email")
+        .select("id, phone_primary, phone_secondary, additional_numbers, email")
         .eq("agency_id", agencyId);
       const duplicateIds = (candidates ?? [])
         .filter(
           (c) =>
-            phonesMatch(c.phone_primary as string, phonePrimary) ||
-            phonesMatch(c.phone_secondary as string, phonePrimary) ||
+            contactMatchesPhone(c, phonePrimary) ||
             (body.email && c.email && String(c.email).toLowerCase() === String(body.email).toLowerCase())
         )
         .map((c) => c.id as string);
@@ -178,6 +185,7 @@ export const POST = withErrorHandling(async (request) => {
           roles: body.roles ?? [],
           phone_primary: phonePrimary,
           phone_secondary: phoneSecondary ?? null,
+          additional_numbers: additionalNumbers ?? [],
           email: body.email ?? null,
           company: body.company ?? null,
           mortgage_status: body.mortgage_status ?? null,

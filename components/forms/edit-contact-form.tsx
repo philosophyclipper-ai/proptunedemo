@@ -31,6 +31,7 @@ export function EditContactForm({
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="roles_editable" value="1" />
       <input type="hidden" name="buyer_fields_editable" value="1" />
+      <input type="hidden" name="additional_numbers_editable" value="1" />
       <div className="grid grid-cols-2 gap-3">
         <Field label="Name">
           <input name="name" required defaultValue={contact.name} className={inputClass} />
@@ -81,6 +82,20 @@ export function EditContactForm({
           </select>
         </Field>
       </div>
+
+      <Field label="Additional Numbers">
+        <textarea
+          name="additional_numbers"
+          rows={2}
+          placeholder="One per line — a second mobile, a partner's number…"
+          defaultValue={contact.additional_numbers.join("\n")}
+          className={inputClass}
+        />
+      </Field>
+      <p className="-mt-2 text-xs text-ink-faint">
+        A number here still resolves to this contact everywhere phone lookup happens — use it for
+        a shared landline instead of creating a second contact for the same household.
+      </p>
 
       <div>
         <p className="mb-2 text-xs font-medium text-ink-muted">Roles</p>

@@ -35,6 +35,7 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     "roles",
     "phone_primary",
     "phone_secondary",
+    "additional_numbers",
     "email",
     "company",
     "mortgage_status",
@@ -52,6 +53,13 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     const result = toE164Phone(updates.phone_secondary as string);
     if ("error" in result) throw new ApiError("validation_failed", result.error);
     updates.phone_secondary = result.value;
+  }
+  if (updates.additional_numbers !== undefined) {
+    updates.additional_numbers = (updates.additional_numbers as string[]).map((n) => {
+      const result = toE164Phone(n);
+      if ("error" in result) throw new ApiError("validation_failed", result.error);
+      return result.value;
+    });
   }
 
   const { data, error } = await supabase

@@ -63,3 +63,24 @@ export function toE164Phone(raw: string): { value: string } | { error: string } 
   }
   return { error: ERROR };
 }
+
+// A contact can hold a number in three places: phone_primary,
+// phone_secondary, or additional_numbers (a second mobile, a partner's
+// landline — added so a couple/office sharing a number doesn't need a
+// second contact row just to make their own number findable). One place
+// that checks all three, so lookup/resolve/dedup can't drift out of sync
+// with each other about what counts as "this contact's number".
+export function contactMatchesPhone(
+  contact: {
+    phone_primary?: string | null;
+    phone_secondary?: string | null;
+    additional_numbers?: string[] | null;
+  },
+  phone: string
+): boolean {
+  return (
+    phonesMatch(contact.phone_primary, phone) ||
+    phonesMatch(contact.phone_secondary, phone) ||
+    (contact.additional_numbers ?? []).some((n) => phonesMatch(n, phone))
+  );
+}

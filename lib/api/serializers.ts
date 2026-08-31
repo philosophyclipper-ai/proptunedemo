@@ -31,6 +31,7 @@ export function toContact(row: Row) {
     roles: row.roles,
     phone_primary: row.phone_primary,
     phone_secondary: row.phone_secondary,
+    additional_numbers: row.additional_numbers ?? [],
     email: row.email,
     company: row.company,
     mortgage_status: row.mortgage_status,
