@@ -104,7 +104,6 @@ export async function ViewingsWeekView({
                     contact={contacts.get(v.contact_id)}
                     notes={notes.get(v.id) ?? []}
                     revalidatePaths={revalidatePaths}
-                    listingType={listingType}
                     className="cursor-pointer rounded border border-border-hairline bg-cream p-2 text-xs hover:border-amber-500"
                   >
                     <div className="flex items-center justify-between gap-1">
@@ -144,7 +143,6 @@ export async function ViewingsWeekView({
                 contact={contacts.get(v.contact_id)}
                 notes={notes.get(v.id) ?? []}
                 revalidatePaths={revalidatePaths}
-                listingType={listingType}
                 className="cursor-pointer rounded-lg border border-border-hairline bg-paper p-3 text-sm hover:border-amber-500"
               >
                 <div className="flex items-center justify-between gap-2">
@@ -177,7 +175,6 @@ export async function ViewingsWeekView({
                 contact={contacts.get(v.contact_id)}
                 notes={notes.get(v.id) ?? []}
                 revalidatePaths={revalidatePaths}
-                listingType={listingType}
                 className="cursor-pointer rounded-lg border border-border-hairline bg-paper p-3 text-sm hover:border-amber-500"
               >
                 <div className="flex items-center justify-between gap-2">

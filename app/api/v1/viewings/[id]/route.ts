@@ -5,13 +5,7 @@ import { ApiError } from "@/lib/api/errors";
 import { toViewing } from "@/lib/api/serializers";
 
 const ACTIONS = ["confirm", "cancel", "reschedule"] as const;
-const DIRECT_FIELDS = [
-  "status",
-  "scheduled_at",
-  "proposed_times",
-  "mortgage_status",
-  "buyer_property_status",
-] as const;
+const DIRECT_FIELDS = ["status", "scheduled_at", "proposed_times"] as const;
 
 export const PATCH = withErrorHandling(async (request, { params }) => {
   const { id } = await params;

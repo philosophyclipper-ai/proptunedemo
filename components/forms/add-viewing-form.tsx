@@ -3,7 +3,6 @@
 import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { createViewingAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
-import { MORTGAGE_STATUS_OPTIONS, PROPERTY_OWNERSHIP_STATUS_OPTIONS } from "@/lib/ui/buyer-position";
 
 export function AddViewingForm({
   propertyRef,
@@ -56,36 +55,6 @@ export function AddViewingForm({
         Leave unchecked to book as requested, pending approval. A time is required before a
         viewing can be requested or confirmed — without one it&apos;s logged as incomplete.
       </p>
-
-      {listingType === "sales" && (
-        <div className="rounded border border-border-hairline bg-cream p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
-            Buyer Position
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Mortgage Status">
-              <select name="mortgage_status" defaultValue="" className={inputClass}>
-                <option value="">Not asked</option>
-                {MORTGAGE_STATUS_OPTIONS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Their Property Status">
-              <select name="buyer_property_status" defaultValue="" className={inputClass}>
-                <option value="">Not asked</option>
-                {PROPERTY_OWNERSHIP_STATUS_OPTIONS.map((b) => (
-                  <option key={b.value} value={b.value}>
-                    {b.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-        </div>
-      )}
 
       <Field label="Notes (optional)">
         <textarea name="notes" rows={2} className={inputClass} />

@@ -79,8 +79,6 @@ export const POST = withErrorHandling(async (request) => {
             contact_id: body.contact_id,
             status: explicitStatus ?? "requested",
             proposed_times: body.proposed_times,
-            mortgage_status: body.mortgage_status ?? null,
-            buyer_property_status: body.buyer_property_status ?? null,
           })
           .select("*")
           .single();
@@ -112,8 +110,6 @@ export const POST = withErrorHandling(async (request) => {
           status: resolvedStatus,
           scheduled_at: hasScheduledAt ? body.scheduled_at : null,
           calendar_event_id: resolvedStatus === "confirmed" ? `demo-${crypto.randomUUID()}` : null,
-          mortgage_status: body.mortgage_status ?? null,
-          buyer_property_status: body.buyer_property_status ?? null,
         })
         .select("*")
         .single();

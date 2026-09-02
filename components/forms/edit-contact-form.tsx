@@ -4,7 +4,6 @@ import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { updateContactAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
 import { PhoneField } from "@/components/forms/phone-field";
-import { MORTGAGE_STATUS_OPTIONS, PROPERTY_OWNERSHIP_STATUS_OPTIONS } from "@/lib/ui/buyer-position";
 import type { Contact } from "@/lib/ui/types";
 
 const ALL_ROLES = [
@@ -30,7 +29,6 @@ export function EditContactForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="roles_editable" value="1" />
-      <input type="hidden" name="buyer_fields_editable" value="1" />
       <input type="hidden" name="additional_numbers_editable" value="1" />
       <div className="grid grid-cols-2 gap-3">
         <Field label="Name">
@@ -52,34 +50,6 @@ export function EditContactForm({
         </Field>
         <Field label="Company">
           <input name="company" defaultValue={contact.company ?? ""} className={inputClass} />
-        </Field>
-        <Field label="Mortgage Status">
-          <select
-            name="mortgage_status"
-            defaultValue={contact.mortgage_status ?? ""}
-            className={inputClass}
-          >
-            <option value="">Not asked</option>
-            {MORTGAGE_STATUS_OPTIONS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Property Ownership Status">
-          <select
-            name="property_ownership_status"
-            defaultValue={contact.property_ownership_status ?? ""}
-            className={inputClass}
-          >
-            <option value="">Not asked</option>
-            {PROPERTY_OWNERSHIP_STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
         </Field>
       </div>
 

@@ -1,10 +1,6 @@
 import { notFound } from "next/navigation";
 import { getContact, getContactTimeline } from "@/lib/ui/api-client";
 import { titleCase } from "@/lib/ui/format";
-import {
-  MORTGAGE_STATUS_LABELS,
-  PROPERTY_OWNERSHIP_STATUS_LABELS,
-} from "@/lib/ui/buyer-position";
 import { Pill } from "@/components/pill";
 import { EditContactButton } from "@/components/edit-contact-button";
 import { AddNoteForm } from "@/components/forms/add-note-form";
@@ -56,22 +52,6 @@ export default async function ContactDetailPage({
             <div>
               <dt className="text-xs uppercase tracking-wide text-ink-faint">Company</dt>
               <dd className="text-ink">{contact.company}</dd>
-            </div>
-          )}
-          {contact.mortgage_status && (
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-ink-faint">Mortgage Status</dt>
-              <dd className="text-ink">{MORTGAGE_STATUS_LABELS[contact.mortgage_status]}</dd>
-            </div>
-          )}
-          {contact.property_ownership_status && (
-            <div>
-              <dt className="text-xs uppercase tracking-wide text-ink-faint">
-                Property Ownership Status
-              </dt>
-              <dd className="text-ink">
-                {PROPERTY_OWNERSHIP_STATUS_LABELS[contact.property_ownership_status]}
-              </dd>
             </div>
           )}
         </dl>

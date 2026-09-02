@@ -4,7 +4,6 @@ import { useMutationForm } from "@/lib/ui/use-mutation-form";
 import { updateContactAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
 import { PhoneField } from "@/components/forms/phone-field";
-import { MORTGAGE_STATUS_OPTIONS, PROPERTY_OWNERSHIP_STATUS_OPTIONS } from "@/lib/ui/buyer-position";
 import type { Contact } from "@/lib/ui/types";
 
 // Embedded inside viewing/offer detail modals — deliberately omits roles
@@ -13,18 +12,15 @@ import type { Contact } from "@/lib/ui/types";
 export function QuickEditContactForm({
   contact,
   revalidatePaths,
-  showBuyerFields = false,
 }: {
   contact: Contact;
   revalidatePaths: string[];
-  showBuyerFields?: boolean;
 }) {
   const action = updateContactAction.bind(null, contact.id, revalidatePaths);
   const { state, formAction, pending } = useMutationForm(action);
 
   return (
     <form action={formAction} className="flex flex-col gap-2">
-      {showBuyerFields && <input type="hidden" name="buyer_fields_editable" value="1" />}
       <div className="grid grid-cols-3 gap-2">
         <Field label="Name">
           <input name="name" required defaultValue={contact.name} className={inputClass} />
@@ -39,38 +35,6 @@ export function QuickEditContactForm({
           />
         </Field>
       </div>
-      {showBuyerFields && (
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Mortgage Status">
-            <select
-              name="mortgage_status"
-              defaultValue={contact.mortgage_status ?? ""}
-              className={inputClass}
-            >
-              <option value="">Not asked</option>
-              {MORTGAGE_STATUS_OPTIONS.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Property Ownership Status">
-            <select
-              name="property_ownership_status"
-              defaultValue={contact.property_ownership_status ?? ""}
-              className={inputClass}
-            >
-              <option value="">Not asked</option>
-              {PROPERTY_OWNERSHIP_STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-      )}
       {state.status === "error" && <p className="text-sm text-red-600">{state.message}</p>}
       <button
         type="submit"

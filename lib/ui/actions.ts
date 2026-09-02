@@ -189,10 +189,6 @@ export async function createViewingAction(
     if (proposed.length > 0) {
       payload.proposed_times = proposed.map(londonWallTimeToUtcIso);
     }
-    if (listingType === "sales") {
-      payload.mortgage_status = str(formData, "mortgage_status") ?? null;
-      payload.buyer_property_status = str(formData, "buyer_property_status") ?? null;
-    }
 
     const result = await apiPost<Viewing>("/api/v1/viewings", payload);
     if (!result.ok) throw new Error(result.error);
@@ -340,14 +336,6 @@ export async function updateContactAction(
         .map((s) => s.trim())
         .filter(Boolean);
     }
-    // Only present when the form actually rendered these fields (contact
-    // edit always does; the viewing/offer quick-edit only for sales) — an
-    // absent marker means "not shown here", not "clear it".
-    if (formData.has("buyer_fields_editable")) {
-      payload.mortgage_status = str(formData, "mortgage_status") ?? null;
-      payload.property_ownership_status = str(formData, "property_ownership_status") ?? null;
-    }
-
     const result = await apiPatch<Contact>(`/api/v1/contacts/${contactId}`, payload);
     if (!result.ok) throw new Error(result.error);
 

@@ -11,8 +11,6 @@ export type Contact = {
   additional_numbers: string[];
   email: string | null;
   company: string | null;
-  mortgage_status: MortgageStatus | null;
-  property_ownership_status: BuyerPropertyStatus | null;
   created_at: string;
   updated_at: string;
 };
@@ -63,14 +61,6 @@ export type Valuation = {
   updated_at: string;
 };
 
-export type MortgageStatus = "not_required" | "mortgage_required" | "approved_in_principle";
-export type BuyerPropertyStatus =
-  | "first_time_buyer"
-  | "chain_free"
-  | "on_the_market"
-  | "under_offer"
-  | "sold";
-
 export type Viewing = {
   id: string;
   property_ref: string | null;
@@ -79,8 +69,6 @@ export type Viewing = {
   proposed_times: string[] | null;
   scheduled_at: string | null;
   calendar_event_id: string | null;
-  mortgage_status: MortgageStatus | null;
-  buyer_property_status: BuyerPropertyStatus | null;
   created_at: string;
   updated_at: string;
 };

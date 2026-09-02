@@ -38,8 +38,6 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     "additional_numbers",
     "email",
     "company",
-    "mortgage_status",
-    "property_ownership_status",
   ]) {
     if (body[field] !== undefined) updates[field] = body[field];
   }
