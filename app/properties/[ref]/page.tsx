@@ -21,6 +21,7 @@ import {
 } from "@/lib/ui/format";
 import { propertyStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
+import { CopyId } from "@/components/copy-id";
 import { PropertyTabs } from "@/components/property-tabs";
 import { EditListingButton } from "@/components/edit-listing-button";
 import { AddMaintenanceButton } from "@/components/add-maintenance-button";
@@ -85,9 +86,13 @@ export default async function PropertyDetailPage({
           <h1 className="font-heading text-3xl font-semibold text-navy-950">
             {property.address_line1}
           </h1>
-          <p className="text-sm text-ink-muted">
-            {formatAddress(property)} · {property.ref}
-          </p>
+          <p className="text-sm text-ink-muted">{formatAddress(property)}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <CopyId value={property.ref} label="Ref" />
+            {property.negotiator_id && (
+              <CopyId value={property.negotiator_id} label="Negotiator ID" />
+            )}
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Pill tone={propertyStatusTone(property.status)} label={titleCase(property.status)} />
@@ -220,6 +225,9 @@ export default async function PropertyDetailPage({
                 <p className="mt-1 text-xs uppercase tracking-wide text-ink-faint">
                   {vendorContact.roles.join(", ")}
                 </p>
+                <span className="mt-2 inline-block">
+                  <CopyId value={vendorContact.id} label="Contact ID" />
+                </span>
               </Link>
             ) : (
               <p className="text-sm text-ink-muted">

@@ -3,6 +3,7 @@ import type { Property } from "@/lib/ui/types";
 import { formatPrice, formatRent, titleCase } from "@/lib/ui/format";
 import { propertyStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
+import { CopyId } from "@/components/copy-id";
 
 export function PropertyGrid({ properties }: { properties: Property[] }) {
   if (properties.length === 0) {
@@ -53,6 +54,9 @@ export function PropertyGrid({ properties }: { properties: Property[] }) {
                   : "—"}{" "}
               · {titleCase(property.property_type)}
             </p>
+            <div className="mt-2">
+              <CopyId value={property.ref} label="Ref" />
+            </div>
           </div>
         </Link>
       ))}

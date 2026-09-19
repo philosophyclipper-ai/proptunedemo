@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getContact, getContactTimeline } from "@/lib/ui/api-client";
 import { titleCase } from "@/lib/ui/format";
 import { Pill } from "@/components/pill";
+import { CopyId } from "@/components/copy-id";
 import { EditContactButton } from "@/components/edit-contact-button";
 import { AddNoteForm } from "@/components/forms/add-note-form";
 import { Timeline } from "@/components/timeline";
@@ -28,6 +29,7 @@ export default async function ContactDetailPage({
           {contact.roles.map((role) => (
             <Pill key={role} tone="navy" label={titleCase(role)} />
           ))}
+          <CopyId value={contact.id} label="Contact ID" />
         </div>
         <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-1 text-sm sm:grid-cols-3">
           <div>

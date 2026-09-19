@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getAllContacts } from "@/lib/ui/api-client";
 import { titleCase } from "@/lib/ui/format";
 import { Pill } from "@/components/pill";
+import { CopyId } from "@/components/copy-id";
 import { AddContactButton } from "@/components/add-contact-button";
 import { ContactSearchBar } from "@/components/contact-search-bar";
 
@@ -42,6 +43,7 @@ export async function ContactsList({ section }: { section: "sales" | "lettings" 
                 <th className="px-4 py-3 font-medium">Phone</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">Company</th>
+                <th className="px-4 py-3 font-medium">Contact ID</th>
               </tr>
             </thead>
             <tbody>
@@ -65,6 +67,9 @@ export async function ContactsList({ section }: { section: "sales" | "lettings" 
                   <td className="px-4 py-3 text-ink-muted">{contact.phone_primary}</td>
                   <td className="px-4 py-3 text-ink-muted">{contact.email ?? "—"}</td>
                   <td className="px-4 py-3 text-ink-muted">{contact.company ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <CopyId value={contact.id} label="" />
+                  </td>
                 </tr>
               ))}
             </tbody>

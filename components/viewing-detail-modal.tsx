@@ -2,6 +2,7 @@
 
 import { Modal } from "@/components/modal";
 import { Pill } from "@/components/pill";
+import { CopyId } from "@/components/copy-id";
 import { QuickEditContactForm } from "@/components/forms/quick-edit-contact-form";
 import { EditViewingFieldsForm } from "@/components/forms/edit-viewing-fields-form";
 import { ApproveViewingButton, ViewingDangerZone } from "@/components/forms/viewing-quick-actions";
@@ -46,10 +47,16 @@ export function ViewingDetailModal({
             <ApproveViewingButton viewing={viewing} revalidatePaths={revalidatePaths} />
           </div>
 
+          <div className="flex flex-wrap items-center gap-2">
+            <CopyId value={viewing.id} label="Viewing ID" />
+            {viewing.property_ref && <CopyId value={viewing.property_ref} label="Property Ref" />}
+          </div>
+
           {contact && (
             <section>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <p className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 Contact
+                <CopyId value={contact.id} label="Contact ID" />
               </p>
               <QuickEditContactForm contact={contact} revalidatePaths={revalidatePaths} />
             </section>

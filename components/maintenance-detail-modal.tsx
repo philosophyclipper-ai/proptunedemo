@@ -1,6 +1,7 @@
 "use client";
 
 import { Modal } from "@/components/modal";
+import { CopyId } from "@/components/copy-id";
 import { EditMaintenanceFieldsForm } from "@/components/forms/edit-maintenance-fields-form";
 import { AddNoteForm } from "@/components/forms/add-note-form";
 import { NotesList } from "@/components/notes-list";
@@ -34,6 +35,12 @@ export function MaintenanceDetailModal({
     >
       {() => (
         <div className="flex flex-col gap-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <CopyId value={issue.id} label="Issue ID" />
+            {issue.property_ref && <CopyId value={issue.property_ref} label="Property Ref" />}
+            {issue.contact_id && <CopyId value={issue.contact_id} label="Contact ID" />}
+          </div>
+
           <section>
             <EditMaintenanceFieldsForm issue={issue} revalidatePaths={revalidatePaths} />
           </section>

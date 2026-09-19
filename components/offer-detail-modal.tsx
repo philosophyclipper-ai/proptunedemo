@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Modal } from "@/components/modal";
+import { CopyId } from "@/components/copy-id";
 import { QuickEditContactForm } from "@/components/forms/quick-edit-contact-form";
 import { EditOfferFieldsForm } from "@/components/forms/edit-offer-fields-form";
 import { AddOfferContactForm } from "@/components/forms/add-offer-contact-form";
@@ -41,10 +42,19 @@ export function OfferDetailModal({
     >
       {() => (
         <div className="flex flex-col gap-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <CopyId
+              value={offer.id}
+              label={listingType === "lettings" ? "Application ID" : "Offer ID"}
+            />
+            {offer.property_ref && <CopyId value={offer.property_ref} label="Property Ref" />}
+          </div>
+
           {contact && (
             <section>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <p className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 Primary Contact
+                <CopyId value={contact.id} label="Contact ID" />
               </p>
               <QuickEditContactForm contact={contact} revalidatePaths={revalidatePaths} />
             </section>
