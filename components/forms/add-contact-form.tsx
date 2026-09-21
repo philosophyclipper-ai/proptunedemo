@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutationForm } from "@/lib/ui/use-mutation-form";
+import { useBackgroundMutation } from "@/lib/ui/use-background-mutation";
 import { createContactAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
 import { PhoneField } from "@/components/forms/phone-field";
@@ -27,10 +27,15 @@ export function AddContactForm({
   onSuccess: () => void;
 }) {
   const action = createContactAction.bind(null, section);
-  const { state, formAction, pending } = useMutationForm(action, onSuccess);
+  // Closes on submit and saves in the background — see useBackgroundMutation.
+  const { formProps } = useBackgroundMutation(action, {
+    onSubmitted: onSuccess,
+    pendingMessage: "Adding contact…",
+    successMessage: "Contact added",
+  });
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form {...formProps} className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
         <Field label="Name">
           <input name="name" required className={inputClass} />
@@ -56,14 +61,11 @@ export function AddContactForm({
         </div>
       </div>
 
-      {state.status === "error" && <p className="text-sm text-red-600">{state.message}</p>}
-
       <button
         type="submit"
-        disabled={pending}
-        className="cursor-pointer rounded bg-navy-900 px-4 py-2 text-sm font-medium text-cream hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="cursor-pointer rounded bg-navy-900 px-4 py-2 text-sm font-medium text-cream hover:bg-navy-800"
       >
-        {pending ? "Saving…" : "Add Contact"}
+        Add Contact
       </button>
     </form>
   );

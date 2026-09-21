@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutationForm } from "@/lib/ui/use-mutation-form";
+import { useBackgroundMutation } from "@/lib/ui/use-background-mutation";
 import { createViewingAction } from "@/lib/ui/actions";
 import { Field, inputClass } from "@/components/forms/field";
 
@@ -14,10 +14,16 @@ export function AddViewingForm({
   onSuccess: () => void;
 }) {
   const action = createViewingAction.bind(null, propertyRef, listingType);
-  const { state, formAction, pending } = useMutationForm(action, onSuccess);
+  // Closes on submit and saves in the background — this one chains a contact
+  // upsert, the viewing and an optional note, so it's the slowest write here.
+  const { formProps } = useBackgroundMutation(action, {
+    onSubmitted: onSuccess,
+    pendingMessage: "Saving viewing…",
+    successMessage: "Viewing saved",
+  });
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form {...formProps} className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
         <Field label="Contact Name">
           <input name="contact_name" required className={inputClass} />
@@ -60,14 +66,11 @@ export function AddViewingForm({
         <textarea name="notes" rows={2} className={inputClass} />
       </Field>
 
-      {state.status === "error" && <p className="text-sm text-red-600">{state.message}</p>}
-
       <button
         type="submit"
-        disabled={pending}
-        className="cursor-pointer rounded bg-navy-900 px-4 py-2 text-sm font-medium text-cream hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="cursor-pointer rounded bg-navy-900 px-4 py-2 text-sm font-medium text-cream hover:bg-navy-800"
       >
-        {pending ? "Saving…" : "Save Viewing"}
+        Save Viewing
       </button>
     </form>
   );

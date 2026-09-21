@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Sora, Inter } from "next/font/google";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { ToastHost } from "@/components/toast-host";
 import "./globals.css";
 
 const sora = Sora({
@@ -26,10 +27,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${sora.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-cream text-ink">
-        <div className="flex min-h-screen">
-          <SidebarNav />
-          <main className="min-w-0 flex-1">{children}</main>
-        </div>
+        <ToastHost>
+          <div className="flex min-h-screen">
+            <SidebarNav />
+            <main className="min-w-0 flex-1">{children}</main>
+          </div>
+        </ToastHost>
       </body>
     </html>
   );
