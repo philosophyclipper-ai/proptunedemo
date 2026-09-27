@@ -14,6 +14,14 @@ const PROPERTY_TYPES = [
   { value: "maisonette", label: "Maisonette" },
   { value: "land", label: "Land" },
 ];
+// Scotland's own tenure sits alongside the two the rest of the UK uses —
+// see CLAUDE.md. Blank stays available because plenty of records don't
+// record it at all.
+const TENURES = [
+  { value: "feuhold", label: "Feuhold" },
+  { value: "freehold", label: "Freehold" },
+  { value: "leasehold", label: "Leasehold" },
+];
 const PRICE_QUALIFIERS = [
   { value: "offers_over", label: "Offers Over" },
   { value: "fixed_price", label: "Fixed Price" },
@@ -197,6 +205,25 @@ export function ListingForm(props: Props) {
                   className={inputClass}
                 />
               </Field>
+              <Field label="Home Report Value (£)">
+                <input
+                  name="home_report_value"
+                  type="number"
+                  min={0}
+                  step="1"
+                  defaultValue={property?.home_report_value ?? ""}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Home Report URL">
+                <input
+                  name="home_report_url"
+                  type="url"
+                  placeholder="Link to the PDF, or leave blank"
+                  defaultValue={property?.home_report_url ?? ""}
+                  className={inputClass}
+                />
+              </Field>
             </div>
           )}
 
@@ -236,15 +263,41 @@ export function ListingForm(props: Props) {
       )}
 
       {props.mode === "edit" && (
-        <Field label="Viewing Notes">
-          <textarea
-            name="viewing_notes"
-            rows={4}
-            placeholder="e.g. one bullet per point — who shows the property, general availability, access notes"
-            defaultValue={property?.viewing_notes ?? ""}
-            className={inputClass}
-          />
-        </Field>
+        <>
+          {!isLettings && (
+            <Field label="Tenure">
+              <select
+                name="tenure"
+                defaultValue={property?.tenure ?? ""}
+                className={inputClass}
+              >
+                <option value="">Not recorded</option>
+                {TENURES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+          <Field label="Viewing Notes">
+            <textarea
+              name="viewing_notes"
+              rows={4}
+              placeholder="e.g. one bullet per point — who shows the property, general availability, access notes"
+              defaultValue={property?.viewing_notes ?? ""}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Viewing Calendar ID">
+            <input
+              name="viewing_calendar_id"
+              placeholder="Calendar this property's viewings go in, if one applies"
+              defaultValue={property?.viewing_calendar_id ?? ""}
+              className={inputClass}
+            />
+          </Field>
+        </>
       )}
 
       <div className="rounded border border-border-hairline bg-cream p-3">

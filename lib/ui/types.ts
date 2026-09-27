@@ -35,6 +35,7 @@ export type Property = {
   council_tax_band: string | null;
   epc_rating: string | null;
   vendor_contact_id: string | null;
+  viewing_calendar_id: string | null;
   viewing_notes: string | null;
   closing_date: string | null;
   went_live_at: string | null;
@@ -122,4 +123,14 @@ export type TimelineEntry = {
   author_type: "user" | "ai" | null;
   summary: string;
   occurred_at: string;
+};
+
+export type PropertyVendor = {
+  contact_id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  company: string | null;
+  // Mirrored into properties.vendor_contact_id, which older n8n flows read.
+  is_primary: boolean;
 };

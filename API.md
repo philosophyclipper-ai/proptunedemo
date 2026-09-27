@@ -22,9 +22,19 @@ PATCH  /contacts/:id
 GET    /properties?postcode=&q=&min_price=&max_price=&beds=&type=&status=&listing_type=&cursor=
 GET    /properties/:ref
 GET    /properties/:ref/notes      UI only
+GET    /properties/:ref/vendors    UI only
 POST   /properties                 UI only — onboards a new listing
+POST   /properties/:ref/vendors    UI only — attach a contact as a seller
+DELETE /properties/:ref/vendors/:contact_id   UI only — detach one
 PATCH  /properties/:ref            UI only — full listing edit
 ```
+
+A property can be sold by more than one person, which `vendor_contact_id` has no
+way to express — the vendors routes edit the `vendors`/`vendor_contacts` record
+that `contacts/resolve` and `embed=vendors` actually read. `vendor_contact_id`
+stays mirrored to the first contact on that record, so existing n8n flows keep
+working; removing that contact repoints it at whoever remains, or nulls it.
+Detaching a vendor never deletes the contact — they may be a buyer elsewhere.
 
 `q` is a free-text search across address line 1/2, postcode and city (UI search bar) —
 `postcode` remains a dedicated prefix match, used separately by voice search.
@@ -116,9 +126,16 @@ PATCH  /maintenance/:id
 ```
 GET    /notes?entity_type=&entity_id=
 POST   /notes                      contact summaries, viewing feedback, staff commentary
+PATCH  /notes/:id                  UI only — correct the wording of a note
+DELETE /notes/:id                  UI only — remove a note
 GET    /tasks?assignee=&status=
 POST   /tasks
 ```
+
+Editing and deleting notes are UI only and deliberately not voice tools: an agent
+that can rewrite or remove what it (or a colleague) already wrote fails far worse
+than one that can only add. `DELETE` is idempotent — removing an already-removed
+note reports the same result rather than erroring.
 
 ```json
 POST /notes

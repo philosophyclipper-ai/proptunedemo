@@ -5,6 +5,7 @@ import {
   getOffers,
   getProperty,
   getPropertyNotes,
+  getPropertyVendors,
   getPropertyTimeline,
   getUsers,
   getViewings,
@@ -23,6 +24,7 @@ import { propertyStatusTone } from "@/lib/ui/status-tone";
 import { Pill } from "@/components/pill";
 import { CopyId } from "@/components/copy-id";
 import { PropertyTabs } from "@/components/property-tabs";
+import { PropertyVendors } from "@/components/property-vendors";
 import { EditListingButton } from "@/components/edit-listing-button";
 import { AddMaintenanceButton } from "@/components/add-maintenance-button";
 import { PropertyNotesButton } from "@/components/property-notes-button";
@@ -38,17 +40,25 @@ export default async function PropertyDetailPage({
   const property = await getProperty(ref).catch(() => null);
   if (!property) notFound();
 
-  const [notesResult, viewingsResult, offersResult, vendorContact, { users }, { timeline }] =
-    await Promise.all([
-      getPropertyNotes(ref),
-      getViewings({ property_ref: ref }),
-      getOffers({ property_ref: ref }),
-      property.vendor_contact_id
-        ? getContact(property.vendor_contact_id).catch(() => null)
-        : Promise.resolve(null),
-      getUsers(),
-      getPropertyTimeline(ref),
-    ]);
+  const [
+    notesResult,
+    viewingsResult,
+    offersResult,
+    vendorContact,
+    { vendors },
+    { users },
+    { timeline },
+  ] = await Promise.all([
+    getPropertyNotes(ref),
+    getViewings({ property_ref: ref }),
+    getOffers({ property_ref: ref }),
+    property.vendor_contact_id
+      ? getContact(property.vendor_contact_id).catch(() => null)
+      : Promise.resolve(null),
+    getPropertyVendors(ref).catch(() => ({ vendors: [] })),
+    getUsers(),
+    getPropertyTimeline(ref),
+  ]);
   const negotiator = users.find((u) => u.id === property.negotiator_id);
 
   const [contactsMap, feedbackMap, offerNotesMap] = await Promise.all([
@@ -214,27 +224,11 @@ export default async function PropertyDetailPage({
         </div>
 
         <div className="flex flex-col gap-6">
-          <section className="rounded-lg border border-border-hairline bg-paper p-5">
-            <h2 className="mb-3 font-heading text-lg font-semibold text-navy-950">
-              {isLettings ? "Landlord" : "Vendor"}
-            </h2>
-            {vendorContact ? (
-              <Link href={`/contacts/${vendorContact.id}`} className="block hover:underline">
-                <p className="font-medium text-navy-950">{vendorContact.name}</p>
-                <p className="text-sm text-ink-muted">{vendorContact.phone_primary}</p>
-                <p className="mt-1 text-xs uppercase tracking-wide text-ink-faint">
-                  {vendorContact.roles.join(", ")}
-                </p>
-                <span className="mt-2 inline-block">
-                  <CopyId value={vendorContact.id} label="Contact ID" />
-                </span>
-              </Link>
-            ) : (
-              <p className="text-sm text-ink-muted">
-                No {isLettings ? "landlord" : "vendor"} on file.
-              </p>
-            )}
-          </section>
+          <PropertyVendors
+            propertyRef={property.ref}
+            vendors={vendors}
+            isLettings={isLettings}
+          />
 
           <section className="rounded-lg border border-border-hairline bg-paper p-5">
             <h2 className="mb-3 font-heading text-lg font-semibold text-navy-950">

@@ -74,6 +74,9 @@ export function toProperty(row: Row) {
     council_tax_band: row.council_tax_band,
     epc_rating: row.epc_rating,
     vendor_contact_id: row.vendor_contact_id,
+    // Plain reference data, not a branching flag (CLAUDE.md) — exposed so the
+    // CRM can show and edit it like any other field on the listing.
+    viewing_calendar_id: row.viewing_calendar_id,
     viewing_notes: row.viewing_notes,
     closing_date: row.closing_date,
     went_live_at: row.went_live_at,

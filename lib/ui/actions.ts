@@ -114,6 +114,7 @@ export async function updateListing(
       council_tax_band: str(formData, "council_tax_band") ?? null,
       epc_rating: str(formData, "epc_rating") ?? null,
       viewing_notes: str(formData, "viewing_notes") ?? null,
+      viewing_calendar_id: str(formData, "viewing_calendar_id") ?? null,
       negotiator_id: str(formData, "negotiator_id") ?? null,
       went_live_at: str(formData, "went_live_at")
         ? new Date(str(formData, "went_live_at")!).toISOString()
@@ -126,6 +127,9 @@ export async function updateListing(
       payload.price_qualifier = str(formData, "price_qualifier") ?? null;
       payload.asking_price = num(formData, "asking_price") ?? null;
       payload.closing_date = str(formData, "closing_date") ?? null;
+      payload.home_report_value = num(formData, "home_report_value") ?? null;
+      payload.home_report_url = str(formData, "home_report_url") ?? null;
+      payload.tenure = str(formData, "tenure") ?? null;
     } else {
       payload.rent_amount = num(formData, "rent_amount") ?? null;
       payload.rent_frequency = str(formData, "rent_frequency") ?? null;
@@ -522,6 +526,101 @@ export async function updateMaintenanceAction(
     };
 
     const result = await apiPatch(`/api/v1/maintenance/${maintenanceId}`, payload);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+// --- Notes a human typed can be corrected or removed by one -----------------
+// Notes are the system's memory and nothing branches on them, so an edit is a
+// plain overwrite. Both are UI-only; the voice agent may add notes, never
+// change or delete them.
+
+export async function updateNoteAction(
+  noteId: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const body = str(formData, "body");
+    if (!body) throw new Error("Note body is required");
+
+    const result = await apiPatch(`/api/v1/notes/${noteId}`, { body });
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function deleteNoteAction(
+  noteId: string,
+  revalidatePaths: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prev: ActionState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _formData: FormData
+): Promise<ActionState> {
+  try {
+    const result = await apiDelete(`/api/v1/notes/${noteId}`);
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+// --- Vendors ---------------------------------------------------------------
+// A property can have more than one seller (a couple, most often), which
+// vendor_contact_id alone can't express. These manage the vendor record that
+// contacts/resolve and embed=vendors actually read.
+
+export async function addVendorAction(
+  propertyRef: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    // Same phone-upsert route the listing form uses, so adding a vendor who
+    // is already on file attaches the existing contact instead of a duplicate.
+    const contactId = await resolveContact(formData, "vendor", ["vendor"]);
+    if (!contactId) throw new Error("A vendor name and phone number are required");
+
+    const result = await apiPost(`/api/v1/properties/${propertyRef}/vendors`, {
+      contact_id: contactId,
+    });
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}
+
+export async function removeVendorAction(
+  propertyRef: string,
+  contactId: string,
+  revalidatePaths: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _prev: ActionState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _formData: FormData
+): Promise<ActionState> {
+  try {
+    const result = await apiDelete(
+      `/api/v1/properties/${propertyRef}/vendors/${contactId}`
+    );
     if (!result.ok) throw new Error(result.error);
 
     revalidateAll(revalidatePaths);

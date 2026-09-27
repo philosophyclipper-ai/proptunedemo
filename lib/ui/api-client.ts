@@ -4,6 +4,7 @@ import type {
   Note,
   Offer,
   Property,
+  PropertyVendor,
   TimelineEntry,
   User,
   Valuation,
@@ -69,6 +70,12 @@ export async function getAllProperties(): Promise<Property[]> {
 
 export async function getProperty(ref: string) {
   return apiGet<Property>(`/api/v1/properties/${ref}`);
+}
+
+export async function getPropertyVendors(ref: string) {
+  return apiGet<{ property_ref: string; vendors: PropertyVendor[] }>(
+    `/api/v1/properties/${ref}/vendors`
+  );
 }
 
 export async function getPropertyNotes(ref: string) {

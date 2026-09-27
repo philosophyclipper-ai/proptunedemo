@@ -73,7 +73,7 @@ export function ViewingDetailModal({
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
               Notes
             </p>
-            <NotesList notes={notes} />
+            <NotesList notes={notes} editable={{ revalidatePaths }} />
             <div className="mt-2">
               <AddNoteForm
                 entityType="viewing"

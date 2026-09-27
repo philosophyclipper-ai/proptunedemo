@@ -29,7 +29,7 @@ export function PropertyNotesButton({
     >
       {() => (
         <div className="flex flex-col gap-4">
-          <NotesList notes={notes} />
+          <NotesList notes={notes} editable={{ revalidatePaths }} />
           <AddPropertyNoteForm propertyRef={propertyRef} revalidatePaths={revalidatePaths} />
         </div>
       )}
