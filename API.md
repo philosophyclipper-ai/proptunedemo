@@ -10,11 +10,18 @@ Never expose UUIDs for properties — use `ref`.
 
 ```
 GET    /contacts?phone=            ← most important endpoint in the system
+GET    /contacts?email=            exact address, case-insensitive
 GET    /contacts?q=                full-text
 GET    /contacts/:id
 POST   /contacts                   upsert on phone_primary
 PATCH  /contacts/:id
 ```
+
+`phone` matches however the number is written (`+447700900202`, `07700900202`,
+`07700 900202`) and looks in `phone_primary`, `phone_secondary` and
+`additional_numbers`. That matching runs in Postgres — `contacts_by_phone`,
+migration 0049 — so the lookup returns the matches rather than the table.
+`email` is an exact address; use `q` for partials.
 
 ## Properties
 
@@ -67,11 +74,16 @@ PATCH  /valuations/:id
 ## Viewings
 
 ```
-GET    /viewings?phone=&property_ref=&from=&to=
+GET    /viewings?phone=&contact_id=&property_ref=&from=&to=
+GET    /viewings/:id
 POST   /viewings
 PATCH  /viewings/:id               confirm | cancel | reschedule, OR direct field edit — UI only
 POST   /viewings/:id/feedback      writes a note against the viewing
 ```
+
+Filters combine: `contact_id` with `property_ref` answers "this buyer's viewings
+at this property". `phone` resolves to a contact using the same matching as
+`GET /contacts?phone=`, so both agree about whose number it is.
 
 `POST /viewings` branches on which fields the caller sends, not any property flag:
 send `proposed_times` (no `scheduled_at`) → `requested` + a follow-up task is created;

@@ -5,8 +5,9 @@ import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
 import { toContact } from "@/lib/api/serializers";
 import { decodeCursor, encodeCursor, PAGE_SIZE } from "@/lib/api/pagination";
-import { contactMatchesPhone, toE164Phone } from "@/lib/api/phone";
+import { toE164Phone } from "@/lib/api/phone";
 import { attachContactEmbeds, parseEmbed, withEmbed } from "@/lib/api/embed";
+import { findContactsByPhone } from "@/lib/api/lookups";
 
 const CONTACT_EMBEDS = ["vendors", "viewings", "offers", "property_contacts"];
 
@@ -14,6 +15,7 @@ export const GET = withErrorHandling(async (request) => {
   const { supabase, agencyId } = await requireApiContext(request);
   const { searchParams } = new URL(request.url);
   const phone = searchParams.get("phone");
+  const email = searchParams.get("email");
   const q = searchParams.get("q");
   const ids = searchParams.get("ids");
   const cursor = searchParams.get("cursor");
@@ -42,14 +44,20 @@ export const GET = withErrorHandling(async (request) => {
 
   // Real numbers in this CRM are genuinely inconsistent in format
   // (+447700900202 / 07700900202 / 07700 900202 can all be the same
-  // contact) — matching normalises rather than relying on exact string
-  // equality. This can only find more than literal equality did before,
-  // never fewer, so it's a strict improvement for every existing caller.
+  // contact), and a match can come from phone_primary, phone_secondary or
+  // additional_numbers. That's the contacts_by_phone function (migration
+  // 0049) rather than a filter here, so the database returns the matches
+  // instead of the whole table for the API to sift.
   if (phone) {
-    const { data, error } = await query;
-    if (error) throw new ApiError("validation_failed", error.message);
-    const matches = (data ?? []).filter((c) => contactMatchesPhone(c, phone));
+    const matches = await findContactsByPhone(supabase, agencyId, phone);
     return NextResponse.json({ contacts: await serialize(matches), next_cursor: null });
+  }
+  // Exact address, case-insensitive — how an agency looks someone up from an
+  // email thread. Unlike `q`, it won't match a partial.
+  if (email) {
+    const { data, error } = await query.ilike("email", email);
+    if (error) throw new ApiError("validation_failed", error.message);
+    return NextResponse.json({ contacts: await serialize(data ?? []), next_cursor: null });
   }
   if (q) {
     // Voice/n8n use the exact-match `phone` param above; `q` is the UI's
@@ -162,17 +170,20 @@ export const POST = withErrorHandling(async (request) => {
       // email. Created either way — don't auto-merge, a human/agent
       // decides — but flagged so it isn't silently a second row nobody
       // notices.
-      const { data: candidates } = await supabase
-        .from("contacts")
-        .select("id, phone_primary, phone_secondary, additional_numbers, email")
-        .eq("agency_id", agencyId);
-      const duplicateIds = (candidates ?? [])
-        .filter(
-          (c) =>
-            contactMatchesPhone(c, phonePrimary) ||
-            (body.email && c.email && String(c.email).toLowerCase() === String(body.email).toLowerCase())
-        )
-        .map((c) => c.id as string);
+      const [byPhone, byEmail] = await Promise.all([
+        findContactsByPhone(supabase, agencyId, phonePrimary),
+        body.email
+          ? supabase
+              .from("contacts")
+              .select("id")
+              .eq("agency_id", agencyId)
+              .ilike("email", String(body.email))
+              .then(({ data }) => data ?? [])
+          : Promise.resolve([] as { id: string }[]),
+      ]);
+      const duplicateIds = [
+        ...new Set([...byPhone, ...byEmail].map((c) => c.id as string)),
+      ];
 
       const { data, error } = await supabase
         .from("contacts")

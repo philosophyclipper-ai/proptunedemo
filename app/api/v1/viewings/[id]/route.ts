@@ -7,6 +7,28 @@ import { toViewing } from "@/lib/api/serializers";
 const ACTIONS = ["confirm", "cancel", "reschedule"] as const;
 const DIRECT_FIELDS = ["status", "scheduled_at", "proposed_times"] as const;
 
+// A viewing addressed directly by its id, the counterpart to PATCH below.
+// Callers hold viewing ids already — the front desk hands one to the
+// coordinator, and every list endpoint returns them — so re-fetching one
+// meant listing a property's viewings and filtering client-side.
+// Same shape as every other viewing response, property embedded as a ref.
+export const GET = withErrorHandling(async (request, { params }) => {
+  const { id } = await params;
+  const { supabase, agencyId } = await requireApiContext(request);
+
+  const { data, error } = await supabase
+    .from("viewings")
+    .select("*, properties(ref)")
+    .eq("agency_id", agencyId)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new ApiError("validation_failed", error.message);
+  if (!data) throw new ApiError("not_found", `No viewing with id ${id}`);
+
+  return NextResponse.json(toViewing(data));
+});
+
 export const PATCH = withErrorHandling(async (request, { params }) => {
   const { id } = await params;
   const { supabase, agencyId } = await requireApiContext(request);

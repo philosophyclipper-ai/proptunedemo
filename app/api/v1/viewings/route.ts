@@ -11,6 +11,7 @@ export const GET = withErrorHandling(async (request) => {
   const { searchParams } = new URL(request.url);
   const phone = searchParams.get("phone");
   const propertyRef = searchParams.get("property_ref");
+  const contactId = searchParams.get("contact_id");
   const from = searchParams.get("from");
   const to = searchParams.get("to");
 
@@ -28,6 +29,10 @@ export const GET = withErrorHandling(async (request) => {
     const property = await getPropertyByRef(supabase, agencyId, propertyRef);
     query = query.eq("property_id", property.id);
   }
+  // A contact's viewings by id, for callers that already hold one — the UI,
+  // and any workflow given a contact_id by an earlier step. `phone` above
+  // resolves to the same filter the long way round.
+  if (contactId) query = query.eq("contact_id", contactId);
   if (from) query = query.gte("scheduled_at", from);
   if (to) query = query.lte("scheduled_at", to);
 

@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiContext } from "@/lib/api/context";
 import { withErrorHandling } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
-import { getPropertyByRef } from "@/lib/api/lookups";
-import { contactMatchesPhone } from "@/lib/api/phone";
+import { findContactsByPhone, getPropertyByRef } from "@/lib/api/lookups";
 
 type Relationship =
   | "seller"
@@ -52,13 +51,11 @@ export const GET = withErrorHandling(async (request) => {
   // normal not_found relationship.
   const property = await getPropertyByRef(supabase, agencyId, propertyRef);
 
-  const { data: allContacts, error: contactsError } = await supabase
-    .from("contacts")
-    .select("id, name, roles, phone_primary, phone_secondary, additional_numbers")
-    .eq("agency_id", agencyId);
-  if (contactsError) throw new ApiError("validation_failed", contactsError.message);
-
-  const matches: ContactRow[] = (allContacts ?? []).filter((c) => contactMatchesPhone(c, phone));
+  // Matched in the database by contacts_by_phone (migration 0049) rather than
+  // by reading every contact in the agency and sifting them here. Same rules,
+  // same results — including the deliberate case of two contacts sharing one
+  // number, which is why this stays a list rather than a single row.
+  const matches = (await findContactsByPhone(supabase, agencyId, phone)) as ContactRow[];
 
   if (matches.length === 0) {
     return NextResponse.json({

@@ -63,20 +63,39 @@ export async function getPropertyByRef(
   return data;
 }
 
-export async function getContactByPhone(
+// Every contact holding this number, matched in the database by the rules in
+// lib/api/phone.ts (migration 0049). One place for the rule, so /contacts and
+// everything keyed off a caller's number agree about who owns it.
+export async function findContactsByPhone(
   supabase: SupabaseClient,
   agencyId: string,
   phone: string
 ) {
   const { data, error } = await supabase
-    .from("contacts")
+    .rpc("contacts_by_phone", { p_agency_id: agencyId, p_phone: phone })
     .select("*")
-    .eq("agency_id", agencyId)
-    .or(`phone_primary.eq.${phone},phone_secondary.eq.${phone}`)
-    .maybeSingle();
+    .order("created_at", { ascending: true });
 
   if (error) throw new ApiError("validation_failed", error.message);
-  return data;
+  return data ?? [];
+}
+
+// Used by the list endpoints that filter by a caller's number (viewings,
+// offers, valuations, maintenance), which each want a single contact.
+//
+// Two behaviours changed here, both fixing bugs rather than altering a
+// contract. It used to compare the raw string, so GET /viewings?phone=
+// found nothing for a number GET /contacts?phone= found fine. And it used
+// maybeSingle(), which errors outright when two contacts share a number —
+// which this dataset deliberately contains. Oldest match wins, so repeated
+// calls are stable.
+export async function getContactByPhone(
+  supabase: SupabaseClient,
+  agencyId: string,
+  phone: string
+) {
+  const matches = await findContactsByPhone(supabase, agencyId, phone);
+  return matches[0] ?? null;
 }
 
 export async function requireContactById(
