@@ -64,6 +64,12 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     if (Object.keys(updates).length === 0) {
       throw new ApiError("validation_failed", "No editable fields were provided");
     }
+    // Feedback carries its own timestamp — it's one value replaced outright,
+    // so "when was this said" can't be read off the row's updated_at, which
+    // moves for any edit.
+    if (updates.feedback !== undefined) {
+      updates.feedback_at = updates.feedback === null ? null : new Date().toISOString();
+    }
   }
 
   // A viewing can't be requested/confirmed without a time on file — if this

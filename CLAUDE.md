@@ -49,10 +49,13 @@ maintenance) — never written to, never queried by a voice agent.
   own address fields.
 - **`notes` is polymorphic** (`entity_type`, `entity_id`) and is the system's memory.
   Post-call summaries, email recaps and negotiator commentary all land here.
-  `author_type` = `user` | `ai`. Notes against a viewing are its **progress notes** —
-  the running log of arranging it — and show only inside the viewing record.
+  `author_type` = `user` | `ai`. Notes against a viewing are the running log of
+  arranging it and show as "Notes" inside the viewing record. They append —
+  `POST /viewings/:id/feedback` is a historical name for this and is what existing
+  workflows post to.
 - **How a viewing went is `viewings.feedback`**, one value per viewing, replaced not
-  appended, surfaced on the property page. It is not a note.
+  appended, set via `PATCH /viewings/:id` and surfaced on the property page. It is
+  not a note.
 - **`tasks` is the escape hatch.** When an agent can't complete something, it writes a
   task rather than failing.
 

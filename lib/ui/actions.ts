@@ -643,7 +643,9 @@ export async function saveViewingFeedbackAction(
     const feedback = str(formData, "feedback");
     if (!feedback) throw new Error("Feedback is required");
 
-    const result = await apiPost(`/api/v1/viewings/${viewingId}/feedback`, { body: feedback });
+    // PATCH, not POST /feedback — that endpoint appends a note. This is the
+    // single per-viewing value, so it replaces.
+    const result = await apiPatch(`/api/v1/viewings/${viewingId}`, { feedback });
     if (!result.ok) throw new Error(result.error);
 
     revalidateAll(revalidatePaths);

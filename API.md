@@ -84,19 +84,24 @@ GET    /viewings?phone=&contact_id=&property_ref=&from=&to=
 GET    /viewings/:id
 POST   /viewings
 PATCH  /viewings/:id               confirm | cancel | reschedule, OR direct field edit — UI only
-POST   /viewings/:id/feedback      sets the viewing's feedback (one, replaced)
+POST   /viewings/:id/feedback      appends a note against the viewing
 ```
 
 Filters combine: `contact_id` with `property_ref` answers "this buyer's viewings
 at this property". `phone` resolves to a contact using the same matching as
 `GET /contacts?phone=`, so both agree about whose number it is.
 
-**Feedback and progress notes are different things.** `feedback` is one value on
-the viewing — how it went — replaced on each write and shown on the property
-page under that viewing. The running commentary while a viewing is arranged
-(times proposed, chased, relayed) is `POST /notes` with `entity_type: "viewing"`
-— progress notes — which append and stay inside the viewing record. An agent
-logging what it did wants `POST /notes`, not this endpoint.
+**Notes and feedback are different things.** Notes are the running log against a
+viewing — times proposed, chased, relayed — and **append**. Write them with
+`POST /viewings/:id/feedback` (named that way historically, and what existing
+workflows post to) or the equivalent `POST /notes` with
+`entity_type: "viewing"`; both land in the same place and show as "Notes"
+inside the viewing record.
+
+`feedback` is a single value on the viewing — how it actually went — set with
+`PATCH /viewings/:id` and **replaced** on each write. It's the one thing shown
+on the property page under that viewing, so a vendor-facing summary isn't
+buried in the log.
 
 `POST /viewings` branches on which fields the caller sends, not any property flag:
 send `proposed_times` (no `scheduled_at`) → `requested` + a follow-up task is created;
