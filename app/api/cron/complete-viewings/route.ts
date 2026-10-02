@@ -9,8 +9,11 @@ import { ApiError } from "@/lib/api/errors";
 // fail-closed default as proxy.ts's Basic Auth.
 //
 // A viewing whose scheduled_at has passed and is still 'confirmed' becomes
-// 'completed'. Nothing else moves — 'requested'/'incomplete' with a past
-// date are stale, a different problem, not silently reinterpreted here.
+// 'awaiting_feedback': it happened, but nobody has said how it went yet.
+// 'completed' is reached only when feedback is saved (PATCH /viewings/:id),
+// so it means the outcome is known rather than merely that the date passed.
+// Nothing else moves — 'requested'/'incomplete' with a past date are stale,
+// a different problem, not silently reinterpreted here.
 export const GET = withErrorHandling(async (request) => {
   const secret = process.env.CRON_SECRET;
   const auth = request.headers.get("authorization");
@@ -21,12 +24,14 @@ export const GET = withErrorHandling(async (request) => {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("viewings")
-    .update({ status: "completed" })
+    .update({ status: "awaiting_feedback" })
     .eq("status", "confirmed")
     .lt("scheduled_at", new Date().toISOString())
     .select("id");
 
   if (error) throw new ApiError("validation_failed", error.message);
 
-  return NextResponse.json({ completed: (data ?? []).length });
+  // `completed` is kept in the response for callers that already read it.
+  const moved = (data ?? []).length;
+  return NextResponse.json({ awaiting_feedback: moved, completed: moved });
 });

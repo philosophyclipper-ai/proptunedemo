@@ -23,6 +23,8 @@ export function viewingStatusTone(status: string): Tone {
       return "green";
     case "requested":
       return "amber";
+    case "awaiting_feedback":
+      return "red"; // an outstanding job: someone owes the vendor an answer
     case "incomplete":
       return "red";
     case "completed":

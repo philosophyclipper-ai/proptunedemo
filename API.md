@@ -103,6 +103,18 @@ inside the viewing record.
 on the property page under that viewing, so a vendor-facing summary isn't
 buried in the log.
 
+Saving feedback also **completes the viewing**. The lifecycle is:
+
+```
+confirmed --(scheduled_at passes, nightly sweep)--> awaiting_feedback
+awaiting_feedback --(feedback saved)--> completed
+```
+
+So `completed` means the outcome is known, not merely that the date passed, and
+`awaiting_feedback` is the chase list. Clearing feedback puts a viewing back to
+`awaiting_feedback`, so a mistaken entry can be undone. Cancelled viewings never
+move — they didn't happen, so there's nothing to report.
+
 `POST /viewings` branches on which fields the caller sends, not any property flag:
 send `proposed_times` (no `scheduled_at`) → `requested` + a follow-up task is created;
 send `scheduled_at` → `confirmed` directly, with a calendar event stamped. Send neither

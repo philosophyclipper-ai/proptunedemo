@@ -56,6 +56,10 @@ maintenance) — never written to, never queried by a voice agent.
 - **How a viewing went is `viewings.feedback`**, one value per viewing, replaced not
   appended, set via `PATCH /viewings/:id` and surfaced on the property page. It is
   not a note.
+- **A viewing isn't finished until someone says how it went.** Once `scheduled_at`
+  passes, the nightly sweep moves `confirmed` to `awaiting_feedback`; saving feedback
+  moves it to `completed`. So `completed` means the outcome is known, and
+  `awaiting_feedback` is the chase list. Cancelled viewings never move.
 - **`tasks` is the escape hatch.** When an agent can't complete something, it writes a
   task rather than failing.
 

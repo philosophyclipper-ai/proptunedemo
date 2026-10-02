@@ -68,7 +68,27 @@ export const PATCH = withErrorHandling(async (request, { params }) => {
     // so "when was this said" can't be read off the row's updated_at, which
     // moves for any edit.
     if (updates.feedback !== undefined) {
-      updates.feedback_at = updates.feedback === null ? null : new Date().toISOString();
+      const clearing = updates.feedback === null || updates.feedback === "";
+      updates.feedback_at = clearing ? null : new Date().toISOString();
+
+      // Recording how it went is what completes a viewing. Only from the two
+      // states where that makes sense: a cancelled viewing never happened,
+      // and an incomplete/requested one has no agreed time to have happened
+      // at. Clearing feedback puts it back in the queue, so a mistaken entry
+      // can be undone rather than leaving it falsely complete.
+      const { data: current } = await supabase
+        .from("viewings")
+        .select("status")
+        .eq("agency_id", agencyId)
+        .eq("id", id)
+        .maybeSingle();
+      if (updates.status === undefined) {
+        if (!clearing && ["confirmed", "awaiting_feedback"].includes(current?.status)) {
+          updates.status = "completed";
+        } else if (clearing && current?.status === "completed") {
+          updates.status = "awaiting_feedback";
+        }
+      }
     }
   }
 

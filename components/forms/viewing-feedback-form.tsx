@@ -33,6 +33,12 @@ export function ViewingFeedbackForm({
               <p className="mt-1 text-xs text-ink-faint">{formatDateTime(viewing.feedback_at)}</p>
             )}
           </>
+        ) : viewing.status === "awaiting_feedback" ? (
+          // The viewing has happened and nobody has said how it went, which is
+          // the one state that needs chasing.
+          <p className="text-sm text-ink-muted">
+            This viewing has been and gone — adding feedback marks it completed.
+          </p>
         ) : (
           <p className="text-sm text-ink-muted">No feedback recorded yet.</p>
         )}
