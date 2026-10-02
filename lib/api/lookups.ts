@@ -1,6 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError } from "@/lib/api/errors";
 
+// What contacts_by_phone returns: a contacts row. Typed loosely because the
+// RPC is untyped at the client, but named so callers aren't handed `any`.
+export type ContactRow = {
+  id: string;
+  name: string;
+  roles: string[] | null;
+  phone_primary: string | null;
+  phone_secondary: string | null;
+  additional_numbers: string[] | null;
+  email: string | null;
+  company: string | null;
+  created_at: string;
+  [key: string]: unknown;
+};
+
 // vendors/vendor_contacts is authoritative for property ownership;
 // vendor_contact_id is a legacy mirror. Any write path that sets
 // vendor_contact_id must call this too, or the two silently disagree and
@@ -77,7 +92,7 @@ export async function findContactsByPhone(
     .order("created_at", { ascending: true });
 
   if (error) throw new ApiError("validation_failed", error.message);
-  return data ?? [];
+  return (data ?? []) as ContactRow[];
 }
 
 // Used by the list endpoints that filter by a caller's number (viewings,

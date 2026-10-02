@@ -3,7 +3,7 @@ import { requireApiContext } from "@/lib/api/context";
 import { withErrorHandling } from "@/lib/api/handler";
 import { withIdempotency } from "@/lib/api/idempotency";
 import { ApiError } from "@/lib/api/errors";
-import { toNote } from "@/lib/api/serializers";
+import { toViewing } from "@/lib/api/serializers";
 
 export const POST = withErrorHandling(async (request, { params }) => {
   const { id } = await params;
@@ -30,21 +30,21 @@ export const POST = withErrorHandling(async (request, { params }) => {
     "POST /viewings/:id/feedback",
     idempotencyKey,
     async () => {
+      // One feedback per viewing, replaced on each write. It used to append
+      // a note, which is why the property page showed a viewing's whole
+      // relay log under the heading "Feedback". The running commentary is
+      // POST /notes with entity_type "viewing" — progress notes — and stays
+      // inside the viewing record.
       const { data, error } = await supabase
-        .from("notes")
-        .insert({
-          agency_id: agencyId,
-          entity_type: "viewing",
-          entity_id: id,
-          author_type: body.author_type ?? "user",
-          author_user_id: body.author_user_id ?? null,
-          body: body.body,
-        })
-        .select("*")
+        .from("viewings")
+        .update({ feedback: body.body, feedback_at: new Date().toISOString() })
+        .eq("agency_id", agencyId)
+        .eq("id", id)
+        .select("*, properties(ref)")
         .single();
 
       if (error) throw new ApiError("validation_failed", error.message);
-      return { status: 201, body: toNote(data) };
+      return { status: 201, body: toViewing(data) };
     }
   );
 

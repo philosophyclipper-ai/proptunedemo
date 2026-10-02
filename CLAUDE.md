@@ -39,14 +39,20 @@ maintenance) — never written to, never queried by a voice agent.
 
 - **Contacts is one table, not four.** `roles text[]` = vendor | landlord | buyer |
   tenant | applicant | solicitor. A contact commonly holds several at once.
+- **A phone number is not an identity.** It isn't unique: two people share a landline.
+  `POST /contacts` merges on phone *and* name; a different name on a known number
+  creates a separate contact flagged `probable_duplicate`. Never overwrite a person.
 - **Offers covers notes of interest.** `offers.type` = `note_of_interest` | `offer`.
   A note of interest has a null `amount`; an offer requires one. Same table, same
   workflow, and a note of interest can be upgraded in place.
 - **Valuations may have no property** — they exist pre-instruction, so they carry their
   own address fields.
 - **`notes` is polymorphic** (`entity_type`, `entity_id`) and is the system's memory.
-  Viewing feedback, post-call summaries, email recaps and negotiator commentary all land
-  here. `author_type` = `user` | `ai`.
+  Post-call summaries, email recaps and negotiator commentary all land here.
+  `author_type` = `user` | `ai`. Notes against a viewing are its **progress notes** —
+  the running log of arranging it — and show only inside the viewing record.
+- **How a viewing went is `viewings.feedback`**, one value per viewing, replaced not
+  appended, surfaced on the property page. It is not a note.
 - **`tasks` is the escape hatch.** When an agent can't complete something, it writes a
   task rather than failing.
 

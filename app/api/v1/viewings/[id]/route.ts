@@ -5,7 +5,7 @@ import { ApiError } from "@/lib/api/errors";
 import { toViewing } from "@/lib/api/serializers";
 
 const ACTIONS = ["confirm", "cancel", "reschedule"] as const;
-const DIRECT_FIELDS = ["status", "scheduled_at", "proposed_times"] as const;
+const DIRECT_FIELDS = ["status", "scheduled_at", "proposed_times", "feedback"] as const;
 
 // A viewing addressed directly by its id, the counterpart to PATCH below.
 // Callers hold viewing ids already — the front desk hands one to the

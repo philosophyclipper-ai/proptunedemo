@@ -61,7 +61,7 @@ export default async function PropertyDetailPage({
   ]);
   const negotiator = users.find((u) => u.id === property.negotiator_id);
 
-  const [contactsMap, feedbackMap, offerNotesMap] = await Promise.all([
+  const [contactsMap, progressNotesMap, offerNotesMap] = await Promise.all([
     resolveContacts([
       ...viewingsResult.viewings.map((v) => v.contact_id),
       ...offersResult.offers.map((o) => o.contact_id),
@@ -78,7 +78,7 @@ export default async function PropertyDetailPage({
     ),
   ]);
   const contacts = Object.fromEntries(contactsMap);
-  const feedback = Object.fromEntries(feedbackMap);
+  const progressNotes = Object.fromEntries(progressNotesMap);
   const offerNotes = Object.fromEntries(offerNotesMap);
   const isLettings = property.listing_type === "lettings";
 
@@ -217,7 +217,7 @@ export default async function PropertyDetailPage({
               offers={offersResult.offers}
               notes={notesResult.notes}
               contacts={contacts}
-              feedback={feedback}
+              progressNotes={progressNotes}
               offerNotes={offerNotes}
             />
           </section>

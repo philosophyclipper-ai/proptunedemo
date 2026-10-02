@@ -115,6 +115,10 @@ export function toViewing(row: Row) {
     proposed_times: row.proposed_times,
     scheduled_at: row.scheduled_at,
     calendar_event_id: row.calendar_event_id,
+    // How the viewing went: one value, replaced not appended. The running
+    // log of arranging it is notes with entity_type 'viewing'.
+    feedback: row.feedback ?? null,
+    feedback_at: row.feedback_at ?? null,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };

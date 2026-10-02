@@ -629,3 +629,26 @@ export async function removeVendorAction(
     return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
   }
 }
+
+// One feedback per viewing, replaced each time — the vendor-facing answer to
+// "how did it go". The running commentary is addNoteAction against the
+// viewing (progress notes), which is a different thing and a different field.
+export async function saveViewingFeedbackAction(
+  viewingId: string,
+  revalidatePaths: string[],
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const feedback = str(formData, "feedback");
+    if (!feedback) throw new Error("Feedback is required");
+
+    const result = await apiPost(`/api/v1/viewings/${viewingId}/feedback`, { body: feedback });
+    if (!result.ok) throw new Error(result.error);
+
+    revalidateAll(revalidatePaths);
+    return { status: "success" };
+  } catch (err) {
+    return { status: "error", message: err instanceof Error ? err.message : "Something went wrong" };
+  }
+}

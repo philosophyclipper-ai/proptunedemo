@@ -23,6 +23,12 @@ PATCH  /contacts/:id
 migration 0049 — so the lookup returns the matches rather than the table.
 `email` is an exact address; use `q` for partials.
 
+`POST /contacts` matches on phone **and name**. The same name on a number
+already on file updates that contact; a different name creates a separate
+record and flags both with `probable_duplicate` and `duplicate_of`. A phone
+number is not an identity — two people share a landline, and a buyer ringing
+from a number on file as a seller must not overwrite the seller.
+
 ## Properties
 
 ```
@@ -78,12 +84,19 @@ GET    /viewings?phone=&contact_id=&property_ref=&from=&to=
 GET    /viewings/:id
 POST   /viewings
 PATCH  /viewings/:id               confirm | cancel | reschedule, OR direct field edit — UI only
-POST   /viewings/:id/feedback      writes a note against the viewing
+POST   /viewings/:id/feedback      sets the viewing's feedback (one, replaced)
 ```
 
 Filters combine: `contact_id` with `property_ref` answers "this buyer's viewings
 at this property". `phone` resolves to a contact using the same matching as
 `GET /contacts?phone=`, so both agree about whose number it is.
+
+**Feedback and progress notes are different things.** `feedback` is one value on
+the viewing — how it went — replaced on each write and shown on the property
+page under that viewing. The running commentary while a viewing is arranged
+(times proposed, chased, relayed) is `POST /notes` with `entity_type: "viewing"`
+— progress notes — which append and stay inside the viewing record. An agent
+logging what it did wants `POST /notes`, not this endpoint.
 
 `POST /viewings` branches on which fields the caller sends, not any property flag:
 send `proposed_times` (no `scheduled_at`) → `requested` + a follow-up task is created;

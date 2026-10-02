@@ -70,6 +70,8 @@ export type Viewing = {
   proposed_times: string[] | null;
   scheduled_at: string | null;
   calendar_event_id: string | null;
+  feedback: string | null;
+  feedback_at: string | null;
   created_at: string;
   updated_at: string;
 };

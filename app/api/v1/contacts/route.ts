@@ -131,16 +131,24 @@ export const POST = withErrorHandling(async (request) => {
     "POST /contacts",
     idempotencyKey,
     async () => {
-      // Matching on the normalised value (not the raw input) means an
-      // existing contact stored as +447700900202 is correctly found even
-      // if this call sent 07700900202 — previously a literal match, which
-      // silently missed that case and created a duplicate instead.
-      const { data: existing } = await supabase
-        .from("contacts")
-        .select("*")
-        .eq("agency_id", agencyId)
-        .eq("phone_primary", phonePrimary)
-        .maybeSingle();
+      // A number on file is only the same person if the name agrees.
+      //
+      // This used to update whatever row held the number, so a buyer
+      // enquiring from a number already on file as a seller renamed the
+      // seller and replaced their email — and anything reading the seller's
+      // address off that record then wrote to the buyer. A shared landline,
+      // a work mobile, or a test persona reusing a number all did the same.
+      //
+      // Same name: the same person, so fill in what's new. Different name:
+      // a different person who happens to share a number, so they get their
+      // own record and both are flagged as possible duplicates for a human
+      // to merge or leave. Nobody's identity is overwritten either way.
+      const sameNumber = await findContactsByPhone(supabase, agencyId, phonePrimary);
+      const normalizeName = (value: unknown) =>
+        String(value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+      const existing = sameNumber.find(
+        (c) => normalizeName(c.name) === normalizeName(body.name)
+      );
 
       if (existing) {
         const mergedRoles = Array.from(
@@ -164,14 +172,13 @@ export const POST = withErrorHandling(async (request) => {
         return { status: 200, body: toContact(data) };
       }
 
-      // Not an exact phone_primary match (handled above), but could still
-      // be the same person: their number stored differently pre-dating
-      // normalisation, on someone else's phone_secondary, or the same
-      // email. Created either way — don't auto-merge, a human/agent
-      // decides — but flagged so it isn't silently a second row nobody
-      // notices.
+      // Reached when the number is new, or when it's on file under a
+      // different name. Either way a row is created rather than merged —
+      // a human or agent decides whether two records are really one person
+      // — but anything that looks like the same person is flagged so the
+      // duplicate isn't silent.
       const [byPhone, byEmail] = await Promise.all([
-        findContactsByPhone(supabase, agencyId, phonePrimary),
+        Promise.resolve(sameNumber),
         body.email
           ? supabase
               .from("contacts")

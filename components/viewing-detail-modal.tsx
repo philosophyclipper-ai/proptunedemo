@@ -8,6 +8,7 @@ import { EditViewingFieldsForm } from "@/components/forms/edit-viewing-fields-fo
 import { ApproveViewingButton, ViewingDangerZone } from "@/components/forms/viewing-quick-actions";
 import { AddNoteForm } from "@/components/forms/add-note-form";
 import { NotesList } from "@/components/notes-list";
+import { ViewingFeedbackForm } from "@/components/forms/viewing-feedback-form";
 import { titleCase } from "@/lib/ui/format";
 import { viewingStatusTone } from "@/lib/ui/status-tone";
 import type { Contact, Note, Viewing } from "@/lib/ui/types";
@@ -71,7 +72,14 @@ export function ViewingDetailModal({
 
           <section>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
-              Notes
+              Feedback
+            </p>
+            <ViewingFeedbackForm viewing={viewing} revalidatePaths={revalidatePaths} />
+          </section>
+
+          <section>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              Progress Notes
             </p>
             <NotesList notes={notes} editable={{ revalidatePaths }} />
             <div className="mt-2">

@@ -19,7 +19,7 @@ type Props = {
   offers: Offer[];
   notes: Note[];
   contacts: Record<string, Contact>;
-  feedback: Record<string, Note[]>;
+  progressNotes: Record<string, Note[]>;
   offerNotes: Record<string, Note[]>;
 };
 
@@ -33,7 +33,7 @@ export function PropertyTabs({
   offers,
   notes,
   contacts,
-  feedback,
+  progressNotes,
   offerNotes,
 }: Props) {
   const offersTabLabel = listingType === "lettings" ? "Applications" : "Offers & Notes of Interest";
@@ -79,7 +79,7 @@ export function PropertyTabs({
             listingType={listingType}
             viewings={viewings}
             contacts={contacts}
-            feedback={feedback}
+            progressNotes={progressNotes}
             revalidatePaths={revalidatePaths}
           />
         )}
@@ -106,14 +106,14 @@ function ViewingsTab({
   listingType,
   viewings,
   contacts,
-  feedback,
+  progressNotes,
   revalidatePaths,
 }: {
   propertyRef: string;
   listingType: "sales" | "lettings";
   viewings: Viewing[];
   contacts: Record<string, Contact>;
-  feedback: Record<string, Note[]>;
+  progressNotes: Record<string, Note[]>;
   revalidatePaths: string[];
 }) {
   return (
@@ -138,13 +138,13 @@ function ViewingsTab({
       ) : (
         <ul className="flex flex-col gap-2">
           {viewings.map((v) => {
-            const viewingFeedback = feedback[v.id] ?? [];
+            const notesForViewing = progressNotes[v.id] ?? [];
             return (
               <ViewingDetailModal
                 key={v.id}
                 viewing={v}
                 contact={contacts[v.contact_id]}
-                notes={viewingFeedback}
+                notes={notesForViewing}
                 revalidatePaths={revalidatePaths}
               >
                 <div className="flex items-center justify-between">
@@ -164,25 +164,21 @@ function ViewingsTab({
                       ? `Proposed: ${v.proposed_times.map((t) => formatDateTime(t)).join(", ")}`
                       : "No time set"}
                 </p>
-                {viewingFeedback.length > 0 && (
+                {v.feedback && (
                   <div className="mt-2 flex flex-col gap-2 border-t border-border-hairline pt-2">
-                    {viewingFeedback.map((note) => (
-                      <div key={note.id}>
-                        <div className="mb-1 flex items-center gap-2">
-                          <span className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
-                            Feedback
-                          </span>
-                          <Pill
-                            tone={note.author_type === "ai" ? "amber" : "navy"}
-                            label={note.author_type === "ai" ? "AI" : "Staff"}
-                          />
+                    <div>
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                          Feedback
+                        </span>
+                        {v.feedback_at && (
                           <span className="text-xs text-ink-faint">
-                            {formatDateTime(note.created_at)}
+                            {formatDateTime(v.feedback_at)}
                           </span>
-                        </div>
-                        <p className="text-sm text-ink">{note.body}</p>
+                        )}
                       </div>
-                    ))}
+                      <p className="whitespace-pre-wrap text-sm text-ink">{v.feedback}</p>
+                    </div>
                   </div>
                 )}
               </ViewingDetailModal>
